@@ -244,7 +244,7 @@ static bool app_init(){
 		return false;
 	}
 
-	dlog_print(DLOG_DEBUG, LOG_TAG, "Started location services");
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "Started location services");
 	return true;
 
 }
@@ -294,7 +294,7 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 	double nerr2 = l2->err - ndist2;
 	if (nerr1 < 0.0) nerr1 = 0.0;
 	if (nerr2 < 0.0) nerr2 = 0.0;
-	l2->err = nerr2 > nerr1 ? nerr2 : nerr1;
+	l2->err = nerr2 > nerr1 ? nerr1 : nerr2;
 	return ndist1 > l1->err ? ndist1 - l1->err : 0.0;
 }
 
@@ -306,7 +306,7 @@ static void update_increment() {
 	inc->meters = intersect(firstLoc, nextLoc, lastLoc);
 	inc->seconds = (double) (nextLoc->time - firstLoc->time);
 
-	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
 
 	nextLoc->prev = NULL;
 	free(firstLoc);
@@ -378,13 +378,11 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 
 	locCount++;
 
-	double dist = distance(firstLoc, lastLoc);
-	dlog_print(DLOG_DEBUG, LOG_TAG, "New location: %f, %f, %d, %f, %d", latitude, longitude, loc->time, dist, locCount);
-	dlog_print(DLOG_DEBUG, LOG_TAG, "Old location: %f, %f, %d, %f, %d", firstLoc->latitude, firstLoc->longitude);
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "New location: %f, %f, %d, %f, %d", latitude, longitude, loc->time, dist, locCount);
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "Old location: %f, %f, %d, %f, %d", firstLoc->latitude, firstLoc->longitude);
 
-	if (locCount >= MIN_UPDATE &&
-			(dist >= UPDATE_TOL + firstLoc->err + lastLoc->err
-					|| locCount >= MAX_UPDATE)) {
+	while (locCount >= MIN_UPDATE &&
+			(distance(firstLoc, lastLoc) >= UPDATE_TOL + firstLoc->err + lastLoc->err)) {
 		update_increment();
 	}
 }
@@ -410,7 +408,7 @@ static bool _on_create_cb(void *user_data)
 	uib_app_manager_st* app_manager = uib_app_manager_get_instance();
 
 	app_manager->initialize();
-	dlog_print(DLOG_DEBUG, LOG_TAG, "Initializing");
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "Initializing");
 	app_init();
 	/*
 	 * End of area
@@ -420,7 +418,7 @@ static bool _on_create_cb(void *user_data)
 
 static void _on_terminate_cb(void *user_data)
 {
-	dlog_print(DLOG_DEBUG, LOG_TAG, "terminating");
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "terminating");
 	location_manager_unset_position_updated_cb(manager);
 	location_manager_stop(manager);
 	location_manager_destroy(manager);
@@ -429,13 +427,13 @@ static void _on_terminate_cb(void *user_data)
 
 static void _on_resume_cb(void *user_data)
 {
-	dlog_print(DLOG_DEBUG, LOG_TAG, "resuming");
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "resuming");
 	/* Take necessary actions when application becomes visible. */
 }
 
 static void _on_pause_cb(void *user_data)
 {
-	dlog_print(DLOG_DEBUG, LOG_TAG, "pausing");
+//	dlog_print(DLOG_DEBUG, LOG_TAG, "pausing");
 	/* Take necessary actions when application becomes invisible. */
 }
 
