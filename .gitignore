@@ -1,12 +1,3 @@
-.sign
 Debug
 Release
 SA_Report
-.cproject
-.exportMap
-.package-stamp
-.project
-.rds_delta
-.sdk_delta.info
-.tproject
-.uproject
