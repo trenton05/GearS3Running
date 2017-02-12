@@ -1,5 +1,6 @@
 #include "app_main.h"
 #include "gps.h"
+#include "hrm.h"
 #include "uib_app_manager.h"
 
 /* app event callbacks */
@@ -89,6 +90,7 @@ static bool _on_create_cb(void *user_data)
 	app_manager->initialize();
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "Initializing");
 	gps_init();
+	hrm_init();
 	/*
 	 * End of area
 	 */
@@ -99,6 +101,7 @@ static void _on_terminate_cb(void *user_data)
 {
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "terminating");
 	gps_destroy();
+	hrm_destroy();
 	uib_views_get_instance()->destroy_window_obj();
 }
 

@@ -178,6 +178,25 @@ void uib_view1_config_CIRCLE_360x360_portrait() {
 			elm_label_ellipsis_set(vc->ml, EINA_FALSE);
 			evas_object_show(vc->ml);
 		}
+		if (!vc->hrml) {
+			vc->hrml = elm_label_add(vc->grid1);
+		}
+		if(vc->hrml) {
+			evas_object_size_hint_align_set(vc->hrml, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->hrml, 1.0, 1.0);			elm_label_line_wrap_set(vc->hrml, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->hrml,0);
+			elm_label_ellipsis_set(vc->hrml, EINA_FALSE);
+			evas_object_show(vc->hrml);
+		}
+		if (!vc->label10) {
+			vc->label10 = elm_label_add(vc->grid1);
+		}
+		if(vc->label10) {
+			evas_object_size_hint_align_set(vc->label10, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->label10, 1.0, 1.0);			elm_object_text_set(vc->label10,_UIB_LOCALE("HR"));
+			elm_label_line_wrap_set(vc->label10, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->label10,0);
+			elm_label_ellipsis_set(vc->label10, EINA_FALSE);
+			evas_object_show(vc->label10);
+		}
 		if (!vc->exitButton) {
 			vc->exitButton = elm_button_add(vc->grid1);
 		}
@@ -186,7 +205,7 @@ void uib_view1_config_CIRCLE_360x360_portrait() {
 			elm_object_style_set(vc->exitButton,"default");
 			evas_object_show(vc->exitButton);
 		}
-		elm_grid_pack(vc->grid1, vc->label1, 367, 34, 236, 103);		elm_grid_pack(vc->grid1, vc->label2, 169, 133, 272, 112);		elm_grid_pack(vc->grid1, vc->label3, 167, 264, 272, 114);		elm_grid_pack(vc->grid1, vc->label4, 167, 398, 272, 114);		elm_grid_pack(vc->grid1, vc->label6, 167, 750, 272, 114);		elm_grid_pack(vc->grid1, vc->label7, 167, 639, 272, 114);		elm_grid_pack(vc->grid1, vc->label8, 367, 866, 236, 103);		elm_grid_pack(vc->grid1, vc->label9, 167, 508, 272, 114);		elm_grid_pack(vc->grid1, vc->dkml, 435, 156, 397, 111);		elm_grid_pack(vc->grid1, vc->kml, 433, 264, 397, 111);		elm_grid_pack(vc->grid1, vc->akml, 431, 397, 397, 111);		elm_grid_pack(vc->grid1, vc->aml, 431, 506, 397, 111);		elm_grid_pack(vc->grid1, vc->dml, 431, 639, 397, 111);		elm_grid_pack(vc->grid1, vc->ml, 431, 750, 397, 111);		elm_grid_pack(vc->grid1, vc->exitButton, 864, 372, 150, 250);		evas_object_show(vc->grid1);
+		elm_grid_pack(vc->grid1, vc->label1, 367, 34, 236, 103);		elm_grid_pack(vc->grid1, vc->label2, 169, 133, 272, 112);		elm_grid_pack(vc->grid1, vc->label3, 167, 264, 272, 114);		elm_grid_pack(vc->grid1, vc->label4, 177, 398, 262, 114);		elm_grid_pack(vc->grid1, vc->label6, 167, 750, 272, 114);		elm_grid_pack(vc->grid1, vc->label7, 167, 639, 272, 114);		elm_grid_pack(vc->grid1, vc->label8, 367, 866, 236, 103);		elm_grid_pack(vc->grid1, vc->label9, 177, 508, 262, 114);		elm_grid_pack(vc->grid1, vc->dkml, 435, 156, 397, 111);		elm_grid_pack(vc->grid1, vc->kml, 433, 264, 397, 111);		elm_grid_pack(vc->grid1, vc->akml, 431, 397, 397, 111);		elm_grid_pack(vc->grid1, vc->aml, 431, 506, 397, 111);		elm_grid_pack(vc->grid1, vc->dml, 431, 639, 397, 111);		elm_grid_pack(vc->grid1, vc->ml, 431, 750, 397, 111);		elm_grid_pack(vc->grid1, vc->hrml, 20, 506, 156, 111);		elm_grid_pack(vc->grid1, vc->label10, 20, 397, 156, 111);		elm_grid_pack(vc->grid1, vc->exitButton, 864, 372, 150, 250);		evas_object_show(vc->grid1);
 	}
 }
 

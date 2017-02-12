@@ -19,7 +19,7 @@
 typedef struct {
 	double latitude;
 	double longitude;
-	time_t time;
+	double time;
 	double err;
 	void* prev;
 	void* next;
@@ -94,6 +94,9 @@ void get_meters(char* chs, double meters, double seconds, double target) {
 	chs[index--] = 0;
 	chs[index--] = 'm';
 	int i = seconds >= 1.0 && target >= 1.0 ? (int)(meters * target / seconds + 0.5) : (int)(meters + 0.5);
+	chs[index--] = '0' + (i % 10);
+	i /= 10;
+
 	while (i >= 1 && index >= 0) {
 		chs[index--] = '0' + (i % 10);
 		i /= 10;
@@ -223,9 +226,13 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 	double dn2 = (dlat*dlat + dlong*dlong);
 
 	double t = ((l2->latitude - l1->latitude) * dlat + (l2->longitude - l1->longitude) * dlong);
-	double nlat = dn2 == 0.0 ? l1->latitude : l1->latitude + dlat * t / dn2;
-	double nlong = dn2 == 0.0 ? l1->longitude : l1->longitude + dlong * t / dn2;
+	double nlat = l1->latitude;
+	double nlong = l1->longitude;
 
+	if (t > 0 && dn2 != 0.0) {
+		nlat += dlat * t / dn2;
+		nlong += dlong * t / dn2;
+	}
 	double dist = distance_raw(nlat, nlong, l2->latitude, l2->longitude);
 	if (dist > l2->err) {
 		nlat = l2->latitude + (nlat - l2->latitude) * l2->err / dist;
@@ -252,7 +259,7 @@ static void update_increment() {
 	location_time* nextLoc = firstLoc->next;
 
 	inc->meters = intersect(firstLoc, nextLoc, lastLoc);
-	inc->seconds = (double) (nextLoc->time - firstLoc->time);
+	inc->seconds = nextLoc->time - firstLoc->time;
 
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
 
@@ -306,8 +313,11 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 	location_time* loc = malloc(sizeof(location_time));
 	loc->latitude = latitude;
 	loc->longitude = longitude;
-	time(&(loc->time));
 
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+
+    loc->time = now.tv_sec + 1e-9*now.tv_nsec;
 
 	double hor;
 	double vert;
@@ -329,7 +339,8 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 
 	locCount++;
 
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "New location: %f, %f, %d, %f, %d", latitude, longitude, loc->time, dist, locCount);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "New location: %f, %f, %f, %d", latitude, longitude, distance(firstLoc, lastLoc), locCount);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Times: %f, %d", loc->time, timestamp);
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "Old location: %f, %f, %d, %f, %d", firstLoc->latitude, firstLoc->longitude);
 
 	while (locCount >= MIN_UPDATE &&
