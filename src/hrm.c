@@ -12,12 +12,16 @@
 
 #define SENSOR_UPDATE_MS 1000
 
-static int lastHrm = -1;
+static int lastHrm = 0;
 static sensor_h sensor;
 static sensor_listener_h sensor_listener;
 
 #define HRM_SIZE 4
 static char* hrmText;
+
+int get_last_hr() {
+	return lastHrm;
+}
 
 void get_hb(char* chs, float val) {
 	int index = 4;
