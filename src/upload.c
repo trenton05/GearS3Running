@@ -19,9 +19,41 @@
 
 #include <curl/curl.h>
 
+struct MemoryStruct {
+  char *memory;
+  size_t size;
+};
+
+static size_t
+WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
+{
+  size_t realsize = size * nmemb;
+  struct MemoryStruct *mem = (struct MemoryStruct *)userp;
+
+  mem->memory = realloc(mem->memory, mem->size + realsize + 1);
+  if(mem->memory == NULL) {
+    /* out of memory! */
+    printf("not enough memory (realloc returned NULL)\n");
+    return 0;
+  }
+
+  memcpy(&(mem->memory[mem->size]), contents, realsize);
+  mem->size += realsize;
+  mem->memory[mem->size] = 0;
+
+  return realsize;
+}
+
+
 bool upload_fit(char* file, char* token) {
 
 	  CURL *curl;
+
+	  CURLcode res;
+	  struct MemoryStruct chunk;
+
+	  chunk.memory = malloc(1);  /* will be grown as needed by realloc above */
+	  chunk.size = 0;    /* no data at this point */
 
 	  struct curl_httppost *formpost=NULL;
 	  struct curl_httppost *lastptr=NULL;
@@ -49,7 +81,7 @@ bool upload_fit(char* file, char* token) {
 	  curl_formadd(&formpost,
 	               &lastptr,
 	               CURLFORM_COPYNAME, "data_type",
-	               CURLFORM_COPYCONTENTS, "fit",
+	               CURLFORM_COPYCONTENTS, "gpx",
 	               CURLFORM_END);
 
 	  curl = curl_easy_init();
@@ -59,18 +91,27 @@ bool upload_fit(char* file, char* token) {
 	  if(curl) {
 	    /* what URL that receives this POST */
 	    curl_easy_setopt(curl, CURLOPT_URL, "https://www.strava.com/api/v3/uploads");
+	    /* send all data to this function  */
+	    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+
+	    /* we pass our 'chunk' struct to the callback function */
+	    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
 		/* only disable 100-continue header if explicitly requested */
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 	    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+	    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
 
+	    dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading FIT");
 	    /* Perform the request, res will get the return code */
-	    CURLcode res = curl_easy_perform(curl);
+	    res = curl_easy_perform(curl);
 	    /* Check for errors */
 	    if(res != CURLE_OK) {
 	      dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %s\n",
 	              curl_easy_strerror(res));
 	      return false;
 	    }
+
+	    dlog_print(DLOG_DEBUG, LOG_TAG, "FIT Uploaded: %s", chunk.memory);
 
 	    /* always cleanup */
 	    curl_easy_cleanup(curl);
@@ -79,6 +120,7 @@ bool upload_fit(char* file, char* token) {
 	    curl_formfree(formpost);
 	    /* free slist */
 	    curl_slist_free_all(headerlist);
+	    free(chunk.memory);
 	    return true;
 	  }
 	  return false;

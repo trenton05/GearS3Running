@@ -165,7 +165,7 @@ bool gps_init(){
 	time(&t);
 
 	char* file = malloc(64);
-	sprintf(file, "/tmp/data%d.fit", (int) t);
+	sprintf(file, "/tmp/data%d.gpx", (int) t);
 	start_fit(file);
 
 	akmText = malloc(DIST_SIZE);
@@ -246,7 +246,7 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 		nlong += dlong * t / dn2;
 	}
 	double dist = distance_raw(nlat, nlong, l2->latitude, l2->longitude);
-	if (dist > l2->err) {
+	if (dist > l2->err && l2->err > 0.1) {
 		nlat = l2->latitude + (nlat - l2->latitude) * l2->err / dist;
 		nlong = l2->longitude + (nlong - l2->longitude) * l2->err / dist;
 	}
@@ -273,7 +273,7 @@ static void update_increment() {
 	inc->meters = intersect(firstLoc, nextLoc, lastLoc);
 	inc->seconds = nextLoc->time - firstLoc->time;
 
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
 
 	nextLoc->prev = NULL;
 	free(firstLoc);
@@ -316,6 +316,11 @@ static void update_increment() {
 static void
 __position_updated_cb(double latitude, double longitude, double altitude, time_t timestamp, void *data)
 {
+	if (lastLoc != NULL &&
+			lastLoc->latitude == latitude &&
+			lastLoc->longitude == longitude) {
+		return;
+	}
 
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -323,12 +328,6 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
     double time = now.tv_sec + 1e-9*now.tv_nsec;
 
 	encode_fit(latitude, longitude, altitude, get_last_hr(), time);
-
-	if (lastLoc != NULL &&
-			lastLoc->latitude == latitude &&
-			lastLoc->longitude == longitude) {
-		return;
-	}
 
 	location_time* loc = malloc(sizeof(location_time));
 	loc->latitude = latitude;

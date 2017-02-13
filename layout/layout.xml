@@ -22,7 +22,7 @@
 					text="1km"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="262" pack_x="177" pack_y="398" id="label4"
+					wrap_width="0" pack_w="252" pack_x="187" pack_y="398" id="label4"
 					text="*km"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
@@ -38,7 +38,7 @@
 					text="Dist"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="262" pack_x="177" pack_y="508" id="label9"
+					wrap_width="0" pack_w="252" pack_x="187" pack_y="508" id="label9"
 					text="*m"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
@@ -65,11 +65,11 @@
 					wrap_width="0" pack_w="397" pack_x="431" pack_y="750" id="ml" text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="156" pack_x="20" pack_y="506" id="hrml"
+					wrap_width="0" pack_w="166" pack_x="20" pack_y="506" id="hrml"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="156" pack_x="20" pack_y="397" id="label10"
+					wrap_width="0" pack_w="166" pack_x="20" pack_y="397" id="label10"
 					text="HR"></label>
 				<button align_v="fill" visible="true" weight_v="1" pack_h="250"
 					weight_h="1" align_h="fill" pack_w="150" disable="false" pack_x="864"

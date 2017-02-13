@@ -8,7 +8,9 @@
     <privileges>
         <privilege>http://tizen.org/privilege/healthinfo</privilege>
         <privilege>http://tizen.org/privilege/location</privilege>
+        <privilege>http://tizen.org/privilege/internet</privilege>
     </privileges>
+    <feature name="http://tizen.org/feature/network.internet">true</feature>
     <feature name="http://tizen.org/feature/location.gps">true</feature>
     <feature name="http://tizen.org/feature/sensor.heart_rate_monitor">true</feature>
     <feature name="http://tizen.org/feature/screen.size.normal.360.360">true</feature>
