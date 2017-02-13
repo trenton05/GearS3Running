@@ -107,7 +107,7 @@ void clean_exit() {
 	app_info->cons_key = OAUTH_CLIENT_ID;
 	app_info->cons_secret = OAUTH_CLIENT_SECRET;
 
-	upload_fit(get_fit(), "1b63bb1bbeb322635b9bafc31601b69ea5938aaf");
+	upload_fit(get_fit(), "");
 	ui_app_exit();
 //	if (get_access_token(provider, _access_token_received_cb, NULL) != OAUTH_ERROR_NONE) {
 //		dlog_print(DLOG_ERROR, LOG_TAG, "Unable to get access token for upload");
