@@ -20,6 +20,13 @@
 #define MAX_UPDATE 10
 
 typedef struct {
+	double meters;
+	double seconds;
+	void* prev;
+	void* next;
+} location_inc;
+
+typedef struct {
 	double latitude;
 	double longitude;
 	double altitude;
@@ -58,9 +65,6 @@ static location_time* lastLoc = NULL;
 static location_inc* firstInc = NULL;
 static location_inc* lastInc = NULL;
 static location_manager_h manager = NULL;
-
-static char file[64];
-static FILE* fit;
 
 static double distance_raw(double lat1, double long1, double lat2, double long2);
 static double distance(location_time* l1, location_time* l2);
@@ -159,8 +163,10 @@ bool gps_init(){
 
 	time_t t;
 	time(&t);
+
+	char* file = malloc(64);
 	sprintf(file, "/tmp/data%d.fit", (int) t);
-	fit = start_fit(file);
+	start_fit(file);
 
 	akmText = malloc(DIST_SIZE);
 	amText = malloc(TIME_SIZE);
@@ -204,9 +210,6 @@ void gps_destroy() {
 	location_manager_unset_position_updated_cb(manager);
 	location_manager_stop(manager);
 	location_manager_destroy(manager);
-
-	stop_fit(fit);
-	upload_fit(file);
 }
 
 static double distance_raw(double lat1, double long1, double lat2, double long2) {
@@ -267,11 +270,6 @@ static void update_increment() {
 
 	location_time* nextLoc = firstLoc->next;
 
-	inc->latitude = nextLoc->latitude;
-	inc->longitude = nextLoc->longitude;
-	inc->heart_rate = nextLoc->heart_rate;
-	inc->altitude = nextLoc->altitude;
-	inc->time = nextLoc->time;
 	inc->meters = intersect(firstLoc, nextLoc, lastLoc);
 	inc->seconds = nextLoc->time - firstLoc->time;
 
@@ -297,7 +295,6 @@ static void update_increment() {
 
 	incCount++;
 
-	encode_fit(fit, inc);
 	update_summary(all_summary, inc, -1, -1);
 	update_summary(dkm_summary, inc, 100, -1);
 	update_summary(km_summary, inc, 1000, -1);
@@ -319,6 +316,14 @@ static void update_increment() {
 static void
 __position_updated_cb(double latitude, double longitude, double altitude, time_t timestamp, void *data)
 {
+
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
+
+    double time = now.tv_sec + 1e-9*now.tv_nsec;
+
+	encode_fit(latitude, longitude, altitude, get_last_hr(), time);
+
 	if (lastLoc != NULL &&
 			lastLoc->latitude == latitude &&
 			lastLoc->longitude == longitude) {
@@ -330,11 +335,7 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 	loc->longitude = longitude;
 	loc->altitude = altitude;
 	loc->heart_rate = get_last_hr();
-
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-
-    loc->time = now.tv_sec + 1e-9*now.tv_nsec;
+	loc->time = time;
 
 	double hor;
 	double vert;

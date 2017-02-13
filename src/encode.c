@@ -16,8 +16,8 @@
 #include "string.h"
 
 #include "encode.h"
-#include "fit_product.h"
-#include "fit_crc.h"
+#include "fit/fit_product.h"
+#include "fit/fit_crc.h"
 
 ///////////////////////////////////////////////////////////////////////
 // Private Function Prototypes
@@ -67,10 +67,15 @@ void WriteData(const void *data, FIT_UINT8 data_size, FILE *fp);
 ///////////////////////////////////////////////////////////////////////
 
 static FIT_UINT16 data_crc;
+static FILE* fp;
+static char* file;
 
-FILE* start_fit(char* file) {
+char* get_fit() {
+	return file;
+}
 
-	   FILE *fp;
+void start_fit(char* name) {
+	file = name;
 
 	   data_crc = 0;
 	   fp = fopen(file, "w+b");
@@ -81,10 +86,9 @@ FILE* start_fit(char* file) {
 
 		WriteMessageDefinition(local_mesg_number, fit_mesg_defs[FIT_MESG_RECORD], FIT_RECORD_MESG_DEF_SIZE, fp);
 
-	   return fp;
 }
 
-void stop_fit(FILE* fp) {
+void stop_fit() {
 
 	   // Write CRC.
 	   fwrite(&data_crc, 1, sizeof(FIT_UINT16), fp);
@@ -95,18 +99,18 @@ void stop_fit(FILE* fp) {
 	   fclose(fp);
 }
 
-void encode_fit(FILE* fp, location_inc* firstLoc)
+void encode_fit(double latitude, double longitude, double altitude, int heart_rate, double time)
 {
 	FIT_UINT8 local_mesg_number = 0;
 
    // Write a Field Description
 	FIT_RECORD_MESG record_mesg;
 	Fit_InitMesg(fit_mesg_defs[FIT_MESG_RECORD], &record_mesg);
-	record_mesg.timestamp = (int) firstLoc->time;
-	record_mesg.position_lat = (int) (firstLoc->latitude * 2147483648.0 / 180.0);
-	record_mesg.position_long = (int) (firstLoc->longitude * 2147483648.0 / 180.0);
-	record_mesg.heart_rate = firstLoc->heart_rate;
-	record_mesg.altitude = (int)(5.0 * firstLoc->altitude + 500.0);
+	record_mesg.timestamp = (int) time;
+	record_mesg.position_lat = (int) (latitude * 2147483648.0 / 180.0);
+	record_mesg.position_long = (int) (longitude * 2147483648.0 / 180.0);
+	record_mesg.heart_rate = heart_rate;
+	record_mesg.altitude = (int)(5.0 * altitude + 500.0);
 	WriteMessage(local_mesg_number, &record_mesg, FIT_RECORD_MESG_SIZE, fp);
 
 }

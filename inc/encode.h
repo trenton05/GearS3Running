@@ -3,9 +3,10 @@
 
 #include "gps.h"
 
-FILE* start_fit(char* file);
-void encode_fit(FILE* fp, location_inc* inc);
-void stop_fit(FILE* fp);
+char* get_fit();
+void start_fit(char* file);
+void encode_fit(double latitude, double longitude, double altitude, int heart_rate, double time);
+void stop_fit();
 
 #endif /* __ENCODE_H__ */
 

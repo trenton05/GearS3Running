@@ -2,6 +2,9 @@
 #include "gps.h"
 #include "hrm.h"
 #include "uib_app_manager.h"
+#include "oauth_handler.h"
+#include "encode.h"
+#include "upload.h"
 
 /* app event callbacks */
 static bool _on_create_cb(void *user_data);
@@ -78,6 +81,40 @@ app_get_resource(const char *res_file_in, char *res_path_out, int res_path_max)
 	}
 }
 
+static oauth_provider_data_s* provider;
+static oauth_provider_app_info_s* app_info;
+
+void _access_token_received_cb(oauth_error_e error, const oauth_provider_token_s* token, void* user_data) {
+	if (error != OAUTH_ERROR_NONE) {
+		dlog_print(DLOG_ERROR, LOG_TAG, "Unable to get access token for upload");
+	} else {
+		upload_fit(get_fit(), token->acc_tok_key);
+	}
+	ui_app_exit();
+}
+
+void clean_exit() {
+
+	stop_fit();
+
+	provider = malloc(sizeof(oauth_provider_data_s));
+	provider->provider_name = "Strava";
+	provider->token_url = OAUTH_TOKEN_URL;
+	provider->auth_url = OAUTH_AUTH_URL;
+	provider->acc_tok_url = OAUTH_TOKEN_URL;
+
+	app_info = malloc(sizeof(oauth_provider_app_info_s));
+	app_info->cons_key = OAUTH_CLIENT_ID;
+	app_info->cons_secret = OAUTH_CLIENT_SECRET;
+
+	upload_fit(get_fit(), "1b63bb1bbeb322635b9bafc31601b69ea5938aaf");
+	ui_app_exit();
+//	if (get_access_token(provider, _access_token_received_cb, NULL) != OAUTH_ERROR_NONE) {
+//		dlog_print(DLOG_ERROR, LOG_TAG, "Unable to get access token for upload");
+//		ui_app_exit();
+//		return;
+//	}
+}
 
 static bool _on_create_cb(void *user_data)
 {

@@ -1,7 +1,9 @@
 #ifndef __UPLOAD_H__
 #define __UPLOAD_H__
 
-int upload_fit(char* file);
+#include <app.h>
+
+bool upload_fit(char* file, char* token);
 
 #endif /* __UPLOAD_H__ */
 

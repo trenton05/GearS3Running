@@ -41,6 +41,8 @@ app_data *uib_app_create();
  */
 void uib_app_destroy(app_data *app);
 
+void clean_exit();
+
 /**
  * @brief Run Tizen application
  * @param[in]   app     Application instance

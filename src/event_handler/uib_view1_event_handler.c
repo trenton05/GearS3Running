@@ -13,6 +13,6 @@ typedef struct _uib_view1_control_context {
 } uib_view1_control_context;
 
 void view1_exitButton_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-	ui_app_exit();
+	clean_exit();
 }
 
