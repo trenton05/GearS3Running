@@ -68,6 +68,8 @@ int uib_app_run(app_data *user_data, int argc, char **argv)
 	ui_app_add_event_handler(&handlers[APP_EVENT_LANGUAGE_CHANGED], APP_EVENT_LANGUAGE_CHANGED, _on_language_changed_cb, user_data);
 	ui_app_add_event_handler(&handlers[APP_EVENT_REGION_FORMAT_CHANGED], APP_EVENT_REGION_FORMAT_CHANGED, _on_region_format_changed_cb, user_data);
 
+	dlog_print(DLOG_DEBUG, LOG_TAG, "App running");
+
 	return ui_app_main(argc, argv, &cbs, user_data);
 }
 
@@ -93,6 +95,16 @@ void _access_token_received_cb(oauth_error_e error, const oauth_provider_token_s
 	ui_app_exit();
 }
 
+static int label_type = PACE_LABEL;
+void toggle_label_type() {
+	label_type = (label_type + 1) % 2;
+	gps_update();
+}
+
+int get_label_type() {
+	return label_type;
+}
+
 void clean_exit() {
 
 	stop_fit();
@@ -107,7 +119,7 @@ void clean_exit() {
 	app_info->cons_key = OAUTH_CLIENT_ID;
 	app_info->cons_secret = OAUTH_CLIENT_SECRET;
 
-	upload_fit(get_fit(), "");
+	upload_fit(get_fit(), "1b63bb1bbeb322635b9bafc31601b69ea5938aaf");
 	ui_app_exit();
 //	if (get_access_token(provider, _access_token_received_cb, NULL) != OAUTH_ERROR_NONE) {
 //		dlog_print(DLOG_ERROR, LOG_TAG, "Unable to get access token for upload");
@@ -125,7 +137,7 @@ static bool _on_create_cb(void *user_data)
 	uib_app_manager_st* app_manager = uib_app_manager_get_instance();
 
 	app_manager->initialize();
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "Initializing");
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Initializing");
 	gps_init();
 	hrm_init();
 	/*
@@ -136,7 +148,7 @@ static bool _on_create_cb(void *user_data)
 
 static void _on_terminate_cb(void *user_data)
 {
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "terminating");
+	dlog_print(DLOG_DEBUG, LOG_TAG, "terminating");
 	gps_destroy();
 	hrm_destroy();
 	uib_views_get_instance()->destroy_window_obj();
@@ -144,13 +156,13 @@ static void _on_terminate_cb(void *user_data)
 
 static void _on_resume_cb(void *user_data)
 {
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "resuming");
+	dlog_print(DLOG_DEBUG, LOG_TAG, "resuming");
 	/* Take necessary actions when application becomes visible. */
 }
 
 static void _on_pause_cb(void *user_data)
 {
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "pausing");
+	dlog_print(DLOG_DEBUG, LOG_TAG, "pausing");
 	/* Take necessary actions when application becomes invisible. */
 }
 

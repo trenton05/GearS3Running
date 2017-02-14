@@ -46,13 +46,14 @@ void hrm_update(){
 
 	get_hb(hrmText, lastHrm);
 
-	elm_object_text_set(vc->hrml,hrmText);
+	elm_object_text_set(vc->hrv,hrmText);
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
 }
 
 static void __update_sensor(sensor_h s, sensor_event_s *event, void *data) {
-	if (event->value_count > 0) {
+	if (event->value_count > 0 && event->values[0] > 0.5) {
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Heart: %f", event->values[0]);
 		int hrm = (int)(event->values[0] + 0.5);
 		if (hrm != lastHrm) {
 			lastHrm = hrm;
@@ -81,6 +82,8 @@ bool hrm_init(){
 		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to set hrm listener callback");
 		return false;
 	}
+
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Started hrm");
 
 	return true;
 }

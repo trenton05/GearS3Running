@@ -5,6 +5,7 @@
 
 bool gps_init();
 void gps_destroy();
+void gps_update();
 
 #endif /* __GPS_H__ */
 

@@ -10,66 +10,68 @@
 				weight_v="1" id="grid1" weight_h="1" vsize_h="1000">
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="103" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="236" pack_x="367" pack_y="34" id="label1"
-					text="Pace"></label>
+					wrap_width="0" pack_w="236" pack_x="367" pack_y="34" id="topLabel"
+					text="Pace">
+					<event function_name="view1_topLabel_onclicked" signal="clicked" />	
+				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="112" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="272" pack_x="169" pack_y="133" id="label2"
-					text=".1km"></label>
+					wrap_width="0" pack_w="272" pack_x="169" pack_y="133" id="l1"
+					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="272" pack_x="167" pack_y="264" id="label3"
-					text="1km"></label>
+					wrap_width="0" pack_w="272" pack_x="167" pack_y="264" id="l2"
+					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="252" pack_x="187" pack_y="398" id="label4"
-					text="*km"></label>
+					wrap_width="0" pack_w="252" pack_x="187" pack_y="398" id="l3"
+					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="272" pack_x="167" pack_y="750" id="label6"
-					text="1m"></label>
+					wrap_width="0" pack_w="252" pack_x="187" pack_y="508" id="l4"
+					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="272" pack_x="167" pack_y="639" id="label7"
-					text="10m"></label>
+					wrap_width="0" pack_w="272" pack_x="167" pack_y="639" id="l5"
+					text=""></label>
+				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
+					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
+					wrap_width="0" pack_w="272" pack_x="167" pack_y="750" id="l6"
+					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="103" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="236" pack_x="367" pack_y="866" id="label8"
-					text="Dist"></label>
-				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
-					pack_h="114" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="252" pack_x="187" pack_y="508" id="label9"
-					text="*m"></label>
-				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
-					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="435" pack_y="156" id="dkml"
+					wrap_width="0" pack_w="236" pack_x="367" pack_y="866" id="bottomLabel"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="433" pack_y="264" id="kml"
+					wrap_width="0" pack_w="397" pack_x="435" pack_y="156" id="v1"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="431" pack_y="397" id="akml"
+					wrap_width="0" pack_w="397" pack_x="433" pack_y="264" id="v2"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="431" pack_y="506" id="aml"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="397" id="v3"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="431" pack_y="639" id="dml"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="506" id="v4"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="431" pack_y="750" id="ml" text=""></label>
-				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
-					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="166" pack_x="20" pack_y="506" id="hrml"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="639" id="v5"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="166" pack_x="20" pack_y="397" id="label10"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="750" id="v6" text=""></label>
+				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
+					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
+					wrap_width="0" pack_w="166" pack_x="20" pack_y="506" id="hrv"
+					text=""></label>
+				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
+					pack_h="111" weight_h="1" ellipsis="false" align_h="fill"
+					wrap_width="0" pack_w="166" pack_x="20" pack_y="397" id="hrl"
 					text="HR"></label>
 				<button align_v="fill" visible="true" weight_v="1" pack_h="250"
 					weight_h="1" align_h="fill" pack_w="150" disable="false" pack_x="864"

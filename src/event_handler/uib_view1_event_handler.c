@@ -16,3 +16,6 @@ void view1_exitButton_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 	clean_exit();
 }
 
+void view1_topLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	toggle_label_type();
+}

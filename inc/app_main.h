@@ -43,6 +43,12 @@ void uib_app_destroy(app_data *app);
 
 void clean_exit();
 
+void toggle_label_type();
+
+#define PACE_LABEL 0
+#define SPEED_LABEL 1
+int get_label_type();
+
 /**
  * @brief Run Tizen application
  * @param[in]   app     Application instance
