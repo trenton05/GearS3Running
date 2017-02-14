@@ -234,9 +234,8 @@ bool gps_init(){
 	}
 
 	/* Start location service */
-	if ((pos_cb = gps_status_set_satellite_updated_cb(manager, __satellite_updated_cb, POSITION_UPDATE_INTERVAL, NULL)) != LOCATIONS_ERROR_NONE) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to register satellites %d", pos_cb);
-		return false;
+	if ((pos_cb = location_manager_set_satellite_updated_cb(manager, __satellite_updated_cb, POSITION_UPDATE_INTERVAL, NULL)) != LOCATIONS_ERROR_NONE) {
+		dlog_print(DLOG_WARN, LOG_TAG, "Failed to register satellites %d", pos_cb);
 	}
 
 	/* Start location service */
@@ -252,6 +251,7 @@ bool gps_init(){
 
 void gps_destroy() {
 	location_manager_unset_position_updated_cb(manager);
+	location_manager_unset_satellite_updated_cb(manager);
 	location_manager_stop(manager);
 	location_manager_destroy(manager);
 }

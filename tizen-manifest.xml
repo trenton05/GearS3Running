@@ -12,7 +12,9 @@
     </privileges>
     <feature name="http://tizen.org/feature/network.internet">true</feature>
     <feature name="http://tizen.org/feature/location.gps">true</feature>
+    <feature name="http://tizen.org/feature/location.wps">true</feature>
     <feature name="http://tizen.org/feature/sensor.heart_rate_monitor">true</feature>
     <feature name="http://tizen.org/feature/screen.size.normal.360.360">true</feature>
     <feature name="http://tizen.org/feature/location">true</feature>
+    <feature name="http://tizen.org/feature/location.batch">true</feature>
 </manifest>
