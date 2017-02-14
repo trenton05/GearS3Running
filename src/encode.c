@@ -52,6 +52,10 @@ void encode_fit(double latitude, double longitude, double altitude, int heart_ra
 	time_t now = (int) time;
     char buf[sizeof "2011-10-08T07:07:09Z"];
     strftime(buf, sizeof buf, "%FT%TZ", gmtime(&now));
-	fprintf(fp, "<trkpt lat=\"%0.9f\" lon=\"%0.9f\"><ele>%0.2f</ele><hr>%d</hr><time>%s</time></trkpt>", latitude, longitude, altitude, heart_rate, buf);
+	fprintf(fp, "<trkpt lat=\"%0.9f\" lon=\"%0.9f\">", latitude, longitude);
+	if (heart_rate > 0) {
+		fprintf(fp, "<hr>%d</hr>", heart_rate);
+	}
+	fprintf(fp, "<ele>%0.2f</ele><hr>%d</hr><time>%s</time></trkpt>", altitude, heart_rate, buf);
 
 }

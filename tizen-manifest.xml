@@ -9,6 +9,8 @@
         <privilege>http://tizen.org/privilege/healthinfo</privilege>
         <privilege>http://tizen.org/privilege/location</privilege>
         <privilege>http://tizen.org/privilege/internet</privilege>
+        <privilege>http://tizen.org/privilege/display</privilege>
+        <privilege>http://tizen.org/privilege/power</privilege>
     </privileges>
     <feature name="http://tizen.org/feature/network.internet">true</feature>
     <feature name="http://tizen.org/feature/location.gps">true</feature>

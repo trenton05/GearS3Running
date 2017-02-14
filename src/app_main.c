@@ -2,9 +2,12 @@
 #include "gps.h"
 #include "hrm.h"
 #include "uib_app_manager.h"
+#include "uib_view1_view.h"
 #include "oauth_handler.h"
 #include "encode.h"
 #include "upload.h"
+#include <device/power.h>
+#include <device/display.h>
 
 /* app event callbacks */
 static bool _on_create_cb(void *user_data);
@@ -138,6 +141,20 @@ static bool _on_create_cb(void *user_data)
 
 	app_manager->initialize();
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Initializing");
+
+	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+	elm_object_text_set(vc->v1,"...");
+	elm_object_text_set(vc->v2,"...");
+	elm_object_text_set(vc->v3,"...");
+	elm_object_text_set(vc->v4,"...");
+	elm_object_text_set(vc->v5,"...");
+	elm_object_text_set(vc->v6,"...");
+	elm_object_text_set(vc->hrv,"...");
+
+	uib_views_get_instance()->uib_views_current_view_redraw();
+
 	gps_init();
 	hrm_init();
 	/*
@@ -149,6 +166,8 @@ static bool _on_create_cb(void *user_data)
 static void _on_terminate_cb(void *user_data)
 {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "terminating");
+
+	device_power_release_lock(POWER_LOCK_DISPLAY);
 	gps_destroy();
 	hrm_destroy();
 	uib_views_get_instance()->destroy_window_obj();
@@ -157,12 +176,15 @@ static void _on_terminate_cb(void *user_data)
 static void _on_resume_cb(void *user_data)
 {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "resuming");
+	//device_power_request_lock(POWER_LOCK_DISPLAY, 0);
 	/* Take necessary actions when application becomes visible. */
 }
 
 static void _on_pause_cb(void *user_data)
 {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "pausing");
+	device_display_change_state(DISPLAY_STATE_NORMAL);
+	//device_power_release_lock(POWER_LOCK_DISPLAY);
 	/* Take necessary actions when application becomes invisible. */
 }
 
