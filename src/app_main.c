@@ -8,6 +8,7 @@
 #include "upload.h"
 #include <device/power.h>
 #include <device/display.h>
+#include <device/callback.h>
 
 /* app event callbacks */
 static bool _on_create_cb(void *user_data);
@@ -131,6 +132,24 @@ void clean_exit() {
 //	}
 }
 
+static void _on_display_changed(device_callback_e type, void *value, void *user_data) {
+	display_state_e state;
+	device_display_get_state(&state);
+
+	if (state == DISPLAY_STATE_NORMAL) {
+	    app_control_h app_control = NULL;
+		app_control_create(&app_control);
+		app_control_set_app_id(app_control, "org.example.Running");
+
+		if(app_control_send_launch_request(app_control, NULL, NULL) == APP_CONTROL_ERROR_NONE)
+		{
+			// app launched successfully
+		}
+
+		app_control_destroy(app_control);
+	}
+}
+
 static bool _on_create_cb(void *user_data)
 {
 	/*
@@ -155,6 +174,7 @@ static bool _on_create_cb(void *user_data)
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
 
+	device_add_callback(DEVICE_CALLBACK_DISPLAY_STATE, _on_display_changed, NULL);
 	gps_init();
 	hrm_init();
 	/*
@@ -167,7 +187,7 @@ static void _on_terminate_cb(void *user_data)
 {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "terminating");
 
-	device_power_release_lock(POWER_LOCK_DISPLAY);
+	device_remove_callback(DEVICE_CALLBACK_DISPLAY_STATE, _on_display_changed);
 	gps_destroy();
 	hrm_destroy();
 	uib_views_get_instance()->destroy_window_obj();
@@ -176,16 +196,12 @@ static void _on_terminate_cb(void *user_data)
 static void _on_resume_cb(void *user_data)
 {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "resuming");
-	//device_power_request_lock(POWER_LOCK_DISPLAY, 0);
-	/* Take necessary actions when application becomes visible. */
 }
 
 static void _on_pause_cb(void *user_data)
 {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "pausing");
-	device_display_change_state(DISPLAY_STATE_NORMAL);
-	//device_power_release_lock(POWER_LOCK_DISPLAY);
-	/* Take necessary actions when application becomes invisible. */
+	//device_display_change_state(DISPLAY_STATE_NORMAL);
 }
 
 static void _on_app_control_cb(app_control_h app_control, void *user_data)

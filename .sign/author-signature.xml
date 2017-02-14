@@ -4,7 +4,7 @@
 <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"></SignatureMethod>
 <Reference URI="bin%2Frunner">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>5277hiz5XVEN+xenagaYK72I6mbUtpZh5CToj1v/18Y=</DigestValue>
+<DigestValue>rC6pxqaV2YLqGoaP7ycFW2hT/8/HcJJs1T7Bmsuz5vU=</DigestValue>
 </Reference>
 <Reference URI="res%2Ftizen_blank_16.png">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
@@ -24,7 +24,7 @@
 </Reference>
 <Reference URI="tizen-manifest.xml">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>jlrd3R/PUxWrbMk+zeiymOOdXDgp2yqwo+2xrmElXFk=</DigestValue>
+<DigestValue>VBU8CwAGmTNn0ZoWUMmZ9D65CdKnwF07r1x0w8ILXzs=</DigestValue>
 </Reference>
 <Reference URI="#prop">
 <Transforms>
@@ -35,11 +35,11 @@
 </Reference>
 </SignedInfo>
 <SignatureValue>
-VS9vDcn4lfplgokkyiGQpLuqTyRP/c6AJS70aNLAh6J7nmrd5vOHe9+yYS/EVR+FmlkxkNSwkNFF
-9OUQFbaPS/h/yM9pmpj0/vNm+Il6iozZ+R3ZOCyeSLag7eI7SCM8e/a+c3aNWfh7eSf8x4NNXrX7
-9JZtUuSJiuNDoEDL5GVzIAKJMY7LrBwCZtzKrGc16G12QQWDfz13wFa7ui2LX4DeYvKjbwYwT8Zg
-q/8qtMdhlSbIeYkNMppUdei3u4rcd0rNSyLz1z1pBB9/X2LlCGnn19HUOOSOkUukh5U1rGU7vXFe
-TcYmogUmkCVAzOF2xsX+rajMu8hb9tQbw9KUZw==
+RqCDDTkdNvGl+x3pXDdW6X+/vX8YH8hCKfSMPwp2UvbJSridJUJe/VzJizqoqnK9LnDpF7/f4vRx
+DhWE/MQkA/qqmDrr9ws66rjIIqlUiRRwT8da3SaE6H4qMCpLX56XUsS5zRZCasUQxN3RSrC5JX+Q
+n13BvPpt2it8FZQ4iAncwBiyhlijwiivr8uyPSI4JkjodT641GomiPMr6hqMOmrEfjii+w/HLzh0
+yxe3s3Aq8bXnMjVR3hQEKspzw28roimaFuHV4Nbm6Djjsrze/xzIZ+9ElVRilEfjY3q0vhlayn4X
+/jCOEIPw0h4Gmnqeukk15CV7uWMu/BBO0f4v9w==
 </SignatureValue>
 <KeyInfo>
 <X509Data>

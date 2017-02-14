@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="org.example.runner" version="1.0.0">
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="org.example.Running" version="1.0.0">
     <profile name="wearable"/>
-    <ui-application appid="org.example.runner" exec="runner" multiple="false" nodisplay="false" taskmanage="true" type="capp">
-        <label>runner</label>
+    <ui-application appid="org.example.Running" exec="runner" multiple="false" nodisplay="false" taskmanage="true" type="capp">
+        <label>Running</label>
         <icon>runner.png</icon>
     </ui-application>
     <privileges>
         <privilege>http://tizen.org/privilege/healthinfo</privilege>
+        <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
         <privilege>http://tizen.org/privilege/location</privilege>
         <privilege>http://tizen.org/privilege/internet</privilege>
         <privilege>http://tizen.org/privilege/display</privilege>
@@ -15,6 +16,7 @@
     <feature name="http://tizen.org/feature/network.internet">true</feature>
     <feature name="http://tizen.org/feature/location.gps">true</feature>
     <feature name="http://tizen.org/feature/location.wps">true</feature>
+    <feature name="http://tizen.org/feature/screen.shape.circle">true</feature>
     <feature name="http://tizen.org/feature/sensor.heart_rate_monitor">true</feature>
     <feature name="http://tizen.org/feature/screen.size.normal.360.360">true</feature>
     <feature name="http://tizen.org/feature/location">true</feature>
