@@ -171,6 +171,9 @@ _on_auth_grant_received(const char *reply)
 	*data = 0;
 	curl_easy_setopt(__curl, CURLOPT_WRITEDATA, &data);
 	curl_easy_setopt(__curl, CURLOPT_WRITEFUNCTION, __store_curl_response);
+	
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+	curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 	CURLcode resp = curl_easy_perform(__curl);
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth token response: %s", data);
@@ -293,6 +296,7 @@ static bool deauthorize() {
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, NULL);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+	curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth logout");
 	/* Perform the request, res will get the return code */

@@ -100,6 +100,7 @@ bool upload_fit(const char* file, const char* token) {
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+	curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading FIT");
 	/* Perform the request, res will get the return code */
