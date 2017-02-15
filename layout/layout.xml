@@ -10,7 +10,7 @@
 				weight_v="1" id="grid1" weight_h="1" vsize_h="1000">
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="103" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="296" pack_x="337" pack_y="34" id="topLabel"
+					wrap_width="0" pack_w="356" pack_x="337" pack_y="34" id="topLabel"
 					text="">
 					<event function_name="view1_topLabel_onclicked" signal="clicked" />	
 				</label>
@@ -46,7 +46,7 @@
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="103" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="296" pack_x="337" pack_y="866" id="bottomLabel"
+					wrap_width="0" pack_w="356" pack_x="337" pack_y="866" id="bottomLabel"
 					text="">
 					<event function_name="view1_bottomLabel_onclicked" signal="clicked" />
 				</label>
