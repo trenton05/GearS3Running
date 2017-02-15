@@ -88,40 +88,37 @@ bool upload_fit(const char* file, const char* token) {
 	  /* initialize custom header list (stating that Expect: 100-continue is not
 	     wanted */
 	  headerlist = curl_slist_append(headerlist, buf);
-	  if(curl) {
-	    /* what URL that receives this POST */
-	    curl_easy_setopt(curl, CURLOPT_URL, "https://www.strava.com/api/v3/uploads");
-	    /* send all data to this function  */
-	    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
-	    /* we pass our 'chunk' struct to the callback function */
-	    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
-		/* only disable 100-continue header if explicitly requested */
-		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-	    curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
-	    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+	/* what URL that receives this POST */
+	curl_easy_setopt(curl, CURLOPT_URL, "https://www.strava.com/api/v3/uploads");
+	/* send all data to this function  */
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
 
-	    dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading FIT");
-	    /* Perform the request, res will get the return code */
-	    res = curl_easy_perform(curl);
-	    /* Check for errors */
-	    if(res != CURLE_OK) {
-	      dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %s\n",
-	              curl_easy_strerror(res));
-	      return false;
-	    }
+	/* we pass our 'chunk' struct to the callback function */
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+	/* only disable 100-continue header if explicitly requested */
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
 
-	    dlog_print(DLOG_DEBUG, LOG_TAG, "FIT Uploaded: %s", chunk.memory);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading FIT");
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	/* Check for errors */
+	if(res != CURLE_OK) {
+	  dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %s\n",
+			  curl_easy_strerror(res));
+	} else {
+		dlog_print(DLOG_DEBUG, LOG_TAG, "FIT Uploaded: %s", chunk.memory);
+	}
 
-	    /* always cleanup */
-	    curl_easy_cleanup(curl);
+	/* always cleanup */
+	curl_easy_cleanup(curl);
 
-	    /* then cleanup the formpost chain */
-	    curl_formfree(formpost);
-	    /* free slist */
-	    curl_slist_free_all(headerlist);
-	    free(chunk.memory);
-	    return true;
-	  }
-	  return false;
+	/* then cleanup the formpost chain */
+	curl_formfree(formpost);
+	/* free slist */
+	curl_slist_free_all(headerlist);
+	free(chunk.memory);
+	return res == CURLE_OK;
 }

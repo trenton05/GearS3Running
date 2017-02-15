@@ -36,8 +36,6 @@
 #include "uib_app_manager.h"
 #include "uib_view1_view.h"
 
-static CURL *__curl = NULL;
-
 typedef struct _oauth_provider_data_full {
 	Evas_Object *login_win;
 	Evas_Object *content_box;
@@ -162,7 +160,7 @@ _on_auth_grant_received(const char *reply)
 		return;
 	}
 
-	__curl = curl_easy_init();
+	CURL* __curl = curl_easy_init();
 	curl_easy_setopt(__curl, CURLOPT_URL, OAUTH_TOKEN_URL);
 
 	char post[MAX_STR_LEN] = {0, };
@@ -170,31 +168,33 @@ _on_auth_grant_received(const char *reply)
 			OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, code);
 	curl_easy_setopt(__curl, CURLOPT_POSTFIELDS, strdup(post));
 
-	char *data = NULL;
+	char *data = malloc(1);
+	*data = 0;
 	curl_easy_setopt(__curl, CURLOPT_WRITEDATA, &data);
 	curl_easy_setopt(__curl, CURLOPT_WRITEFUNCTION, __store_curl_response);
 
 	CURLcode resp = curl_easy_perform(__curl);
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth token response: %s", data);
 
+	curl_easy_cleanup(__curl);
+
 	if (resp != CURLE_OK) {
-		curl_easy_cleanup(__curl);
-		__curl = NULL;
+		free(data);
 		__send_response(OAUTH_ERROR_SERVER);
 		return;
 	}
-
-	curl_easy_cleanup(__curl);
 
 	char* access = strstr(data, "\"access_token\"");
 	char* start = access ? strchr(access + 14, '\"') : NULL;
 	char* end = start ? strchr(start + 1, '\"') : NULL;
 	if (!end) {
+		free(data);
 		__send_response(OAUTH_ERROR_SERVER);
 		return;
 	}
 
 	token = strndup(start + 1, end - start - 1);
+	free(data);
 
 	__send_response(0);
 }
@@ -267,35 +267,100 @@ __show_web_view(const char *url)
 	return 0;
 }
 
+static bool deauthorize() {
+
+	  CURL *curl;
+
+	  CURLcode res;
+
+	  struct curl_httppost *formpost=NULL;
+	  struct curl_httppost *lastptr=NULL;
+	  struct curl_slist *headerlist=NULL;
+	  char buf[256];
+	  strcpy(buf, "Authorization: Bearer ");
+	  strcat(buf, token);
+
+	  curl = curl_easy_init();
+	  /* initialize custom header list (stating that Expect: 100-continue is not
+	     wanted */
+	  headerlist = curl_slist_append(headerlist, buf);
+	/* what URL that receives this POST */
+	curl_easy_setopt(curl, CURLOPT_URL, OAUTH_DEAUTH_URL);
+
+	char *data = malloc(1);
+	*data = 0;
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, __store_curl_response);
+
+	/* only disable 100-continue header if explicitly requested */
+	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth logout");
+	/* Perform the request, res will get the return code */
+	res = curl_easy_perform(curl);
+	/* Check for errors */
+	/* Check for errors */
+	if(res != CURLE_OK) {
+	  dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %s\n",
+			  curl_easy_strerror(res));
+	} else if (data) {
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth logged out: %s", data);
+	}
+
+	/* always cleanup */
+	curl_easy_cleanup(curl);
+
+	/* then cleanup the formpost chain */
+	curl_formfree(formpost);
+	/* free slist */
+	curl_slist_free_all(headerlist);
+	free(data);
+	return res == CURLE_OK;
+
+}
+
 /*Step 1 : Get Request Token*/
 void oauth_login()
 {
 
-	char file[255];
-	char* directory = app_get_data_path();
-	strcpy(file, directory);
-	free(directory);
-	strcat(file, OAUTH_FILE);
+	if (token) {
+		deauthorize();
 
-	FILE* fp = fopen(file, "w");
-	fclose(fp);
-	token = NULL;
+		char file[255];
+		char* directory = app_get_data_path();
+		strcpy(file, directory);
+		free(directory);
+		strcat(file, OAUTH_FILE);
 
-	oauth_full = calloc(1, sizeof(oauth_provider_data_full_s));
+		FILE* fp = fopen(file, "w");
+		fclose(fp);
+		token = NULL;
 
-	char url[MAX_URL_LEN] = {0, };
-	snprintf(url, MAX_URL_LEN - 1, "%s?response_type=code&scope=write&redirect_uri=%s&client_id=%s",
-			OAUTH_AUTH_URL, OAUTH_REDIRECT_URL, OAUTH_CLIENT_ID);
-	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth auth url: %s", url);
-	__show_web_view(url);
+		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-	oauth_full->loading_popup = elm_popup_add(oauth_full->login_win);
-	elm_popup_content_text_wrap_type_set(oauth_full->loading_popup, ELM_WRAP_MIXED);
-	elm_object_text_set(oauth_full->loading_popup, "Loading...");
-	elm_popup_orient_set(oauth_full->loading_popup, ELM_POPUP_ORIENT_BOTTOM);
+		elm_object_text_set(vc->bottomLabel,"Login");
 
-	evas_object_show(oauth_full->loading_popup);
+		uib_views_get_instance()->uib_views_current_view_redraw();
+	} else {
 
+		oauth_full = calloc(1, sizeof(oauth_provider_data_full_s));
+
+		char url[MAX_URL_LEN] = {0, };
+		snprintf(url, MAX_URL_LEN - 1, "%s?response_type=code&scope=write&redirect_uri=%s&client_id=%s",
+				OAUTH_AUTH_URL, OAUTH_REDIRECT_URL, OAUTH_CLIENT_ID);
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth auth url: %s", url);
+		__show_web_view(url);
+
+		oauth_full->loading_popup = elm_popup_add(oauth_full->login_win);
+		elm_popup_content_text_wrap_type_set(oauth_full->loading_popup, ELM_WRAP_MIXED);
+		elm_object_text_set(oauth_full->loading_popup, "Loading...");
+		elm_popup_orient_set(oauth_full->loading_popup, ELM_POPUP_ORIENT_BOTTOM);
+
+		evas_object_show(oauth_full->loading_popup);
+	}
 }
 
 

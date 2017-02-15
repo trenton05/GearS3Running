@@ -86,8 +86,8 @@ void update_summary(location_summary* summary, location_inc* location, double me
 	summary->seconds += location->seconds;
 
 	while (summary->location != NULL &&
-			((meterTarget >= 0.0 && summary->meters > meterTarget)
-			|| (secondTarget >= 0.0 && summary->seconds > secondTarget))) {
+			((meterTarget >= 0.0 && summary->meters > meterTarget && summary->meters - summary->location->meters > 1.0)
+			|| (secondTarget >= 0.0 && summary->seconds > secondTarget && summary->seconds - summary->location->seconds > 1.0))) {
 		summary->meters -= summary->location->meters;
 		summary->seconds -= summary->location->seconds;
 		summary->location = summary->location->next;

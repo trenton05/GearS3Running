@@ -20,6 +20,7 @@
 static FILE* fp;
 static char* file;
 static bool started = false;
+static bool written = false;
 static bool running = false;
 
 char* get_fit() {
@@ -29,23 +30,10 @@ char* get_fit() {
 void start_fit(char* name) {
 	file = name;
 
-	   fp = fopen(file, "w");
-
-	   fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", fp);
-	   fputs("<gpx creator=\"GearS3Running\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">", fp);
-	   fputs("<trk>", fp);
-
 	started = true;
-	resume_fit();
 }
 
 void resume_fit() {
-	if (!started) return;
-
-	if (!running) {
-		running = true;
-		fputs("<trkseg>", fp);
-	}
 }
 
 void pause_fit() {
@@ -53,6 +41,7 @@ void pause_fit() {
 
 	if (running) {
 		running = false;
+
 		fputs("</trkseg>", fp);
 	}
 }
@@ -62,14 +51,32 @@ void stop_fit() {
 
 	started = false;
 
-	fputs("</trk></gpx>", fp);
+	if (written) {
 
-	   fclose(fp);
+		fputs("</trk></gpx>", fp);
+
+		fclose(fp);
+	}
 }
 
 void encode_fit(double latitude, double longitude, double altitude, int heart_rate, double time)
 {
 	if (!started) return;
+
+	if (!written) {
+		written = true;
+
+	   fp = fopen(file, "w");
+
+	   fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", fp);
+	   fputs("<gpx creator=\"GearS3Running\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">", fp);
+	   fputs("<trk>", fp);
+	}
+
+	if (!running) {
+		running = true;
+		fputs("<trkseg>", fp);
+	}
 
 	time_t now = (int) time;
     char buf[sizeof "2011-10-08T07:07:09Z"];
