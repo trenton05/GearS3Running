@@ -15,8 +15,6 @@
  *
  */
 
-
-#include "g_inc_uib.h"
 #include "stdio.h"
 #include <stddef.h>
 #include <glib.h>
@@ -32,8 +30,11 @@
 
 #include "oauth_handler.h"
 
+#include "g_inc_uib.h"
 #include "uib_views.h"
 #include "app_main.h"
+#include "uib_app_manager.h"
+#include "uib_view1_view.h"
 
 #define SAFE_DELETE(x) do { \
 		if (x != NULL) {\
@@ -108,7 +109,7 @@ __send_response(oauth_error_e err, oauth_provider_data_full_s *provider_full)
 		elm_object_text_set(vc->bottomLabel,"Logout");
 
 		FILE* fp = fopen(OAUTH_FILE, "w");
-		fputs(fp, token);
+		fputs(token, fp);
 		fclose(fp);
 	}
 
@@ -139,7 +140,7 @@ static void
 __on_web_url_load_error(void *data, Evas_Object *obj, void *event_info)
 {
 	oauth_provider_data_full_s *oauth_full = data;
-	__send_response(OAUTH_ERROR_NETWORK, oauth_full->user_data);
+	__send_response(OAUTH_ERROR_NETWORK, oauth_full);
 }
 
 static void
@@ -321,7 +322,7 @@ void oauth_init() {
 	FILE* fp = fopen(OAUTH_FILE, "r");
 	if (fp) {
 		char buf[255];
-		int read = fscanf(fp, "%s", buf);
+		int read = fgets(buf, 255, fp);
 		if (read > 0) {
 			token = strdup(buf);
 		}

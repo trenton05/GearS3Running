@@ -174,7 +174,7 @@ void gps_toggle_running() {
 			location_time* next = firstLoc->next;
 			next->prev = NULL;
 			free(firstLoc);
-			firstLoc = next
+			firstLoc = next;
 		}
 		lastLoc = NULL;
 
@@ -236,13 +236,13 @@ bool gps_init(){
 	amText = malloc(TEXT_SIZE);
 	kmText = malloc(TEXT_SIZE);
 	hmText = malloc(TEXT_SIZE);
-	dText = malloc(TEXT_SIZE);
+	mText = malloc(TEXT_SIZE);
+	sText = malloc(TEXT_SIZE);
+	aText = malloc(TEXT_SIZE);
 
 	am_summary = init_summary();
 	hm_summary = init_summary();
 	km_summary = init_summary();
-	alt_summary = init_summary();
-	altdm_summary = init_summary();
 
 	/* Create location manager handle */
 	if (location_manager_create(LOCATIONS_METHOD_GPS, &manager) != LOCATIONS_ERROR_NONE) {
@@ -446,9 +446,6 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 
 	if (lastLoc == NULL) {
 		firstLoc = loc;
-		distLoc = loc;
-		altLoc = loc;
-
 		loc->prev = NULL;
 	} else {
 		loc->prev = lastLoc;

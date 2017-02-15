@@ -26,7 +26,7 @@ char* get_fit() {
 	return file;
 }
 
-void fit_init(char* name) {
+void start_fit(char* name) {
 	file = name;
 
 	   fp = fopen(file, "w");
