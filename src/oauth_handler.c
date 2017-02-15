@@ -46,9 +46,10 @@ typedef struct _oauth_provider_data_full {
 } oauth_provider_data_full_s;
 
 static char* token = NULL;
+static oauth_provider_data_full_s* oauth_full = NULL;
 
 static void
-__hide_web_view(oauth_provider_data_full_s *oauth_full)
+__hide_web_view()
 {
 	if (oauth_full == NULL)
 		return;
@@ -70,23 +71,11 @@ __hide_web_view(oauth_provider_data_full_s *oauth_full)
 }
 
 static void
-__destroy_oauth_provider_full(oauth_provider_data_full_s *pro_full)
+__send_response(oauth_error_e err)
 {
-	if (pro_full == NULL)
-		return;
+	if (oauth_full == NULL) return;
 
-	pro_full->login_win = NULL;
-	pro_full->ewk_view = NULL;
-	pro_full->loading_popup = NULL;
-	pro_full->content_box = NULL;
-
-	free(pro_full);
-}
-
-static void
-__send_response(oauth_error_e err, oauth_provider_data_full_s *provider_full)
-{
-	__hide_web_view(provider_full);
+	__hide_web_view();
 
 	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
@@ -108,6 +97,7 @@ __send_response(oauth_error_e err, oauth_provider_data_full_s *provider_full)
 		free(directory);
 		strcat(file, OAUTH_FILE);
 
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Storing oauth file: %s", file);
 		FILE* fp = fopen(file, "w");
 		fputs(token, fp);
 		fclose(fp);
@@ -115,7 +105,8 @@ __send_response(oauth_error_e err, oauth_provider_data_full_s *provider_full)
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
 
-	__destroy_oauth_provider_full(provider_full);
+	free(oauth_full);
+	oauth_full = NULL;
 }
 
 
@@ -139,15 +130,15 @@ __store_curl_response(void *ptr, size_t size, size_t nmemb, void *data)
 static void
 __on_web_url_load_error(void *data, Evas_Object *obj, void *event_info)
 {
-	oauth_provider_data_full_s *oauth_full = data;
-	__send_response(OAUTH_ERROR_NETWORK, oauth_full);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "oauth url load err");
+	__send_response(OAUTH_ERROR_NETWORK);
 }
 
 static void
 __on_web_url_load_finished(void *data, Evas_Object *obj, void *event_info)
 {
-	oauth_provider_data_full_s *oauth_full = data;
-	if (oauth_full->loading_popup) {
+	dlog_print(DLOG_DEBUG, LOG_TAG, "oauth url load done");
+	if (oauth_full && oauth_full->loading_popup) {
 		evas_object_hide(oauth_full->loading_popup);
 		oauth_full->loading_popup = NULL;
 	}
@@ -156,10 +147,10 @@ __on_web_url_load_finished(void *data, Evas_Object *obj, void *event_info)
 
 /*Step 3 : Get Access Token*/
 static void
-_on_auth_grant_received(oauth_provider_data_full_s *oauth_full, const char *reply)
+_on_auth_grant_received(const char *reply)
 {
-	if (reply == NULL) {
-		__send_response(OAUTH_ERROR_SERVER, oauth_full);
+	if (reply == NULL || oauth_full == NULL) {
+		__send_response(OAUTH_ERROR_SERVER);
 		return;
 	}
 
@@ -167,7 +158,7 @@ _on_auth_grant_received(oauth_provider_data_full_s *oauth_full, const char *repl
 
 	char* code = strchr(reply, '?');
 	if (!code) {
-		__send_response(OAUTH_ERROR_SERVER, oauth_full);
+		__send_response(OAUTH_ERROR_SERVER);
 		return;
 	}
 
@@ -189,7 +180,7 @@ _on_auth_grant_received(oauth_provider_data_full_s *oauth_full, const char *repl
 	if (resp != CURLE_OK) {
 		curl_easy_cleanup(__curl);
 		__curl = NULL;
-		__send_response(OAUTH_ERROR_SERVER, oauth_full);
+		__send_response(OAUTH_ERROR_SERVER);
 		return;
 	}
 
@@ -199,13 +190,13 @@ _on_auth_grant_received(oauth_provider_data_full_s *oauth_full, const char *repl
 	char* start = access ? strchr(access + 14, '\"') : NULL;
 	char* end = start ? strchr(start + 1, '\"') : NULL;
 	if (!end) {
-		__send_response(OAUTH_ERROR_SERVER, oauth_full);
+		__send_response(OAUTH_ERROR_SERVER);
 		return;
 	}
 
 	token = strndup(start + 1, end - start - 1);
 
-	__send_response(0, oauth_full);
+	__send_response(0);
 }
 
 static void
@@ -213,26 +204,21 @@ __on_web_url_change(void *data, Evas_Object *obj, void *event_info)
 {
 	const char *uri = event_info;
 
-	oauth_provider_data_full_s *oauth_full = data;
-
 	if (g_str_has_prefix(uri, OAUTH_REDIRECT_URL) == TRUE) {
-		__hide_web_view(oauth_full);
-		_on_auth_grant_received(oauth_full, uri);
+		_on_auth_grant_received(uri);
 	}
 }
 
 static void
 __handle_back_key(void *data, Evas_Object *p, void *info)
 {
-	if (data) {
-		oauth_provider_data_full_s *oauth_full = data;
-		__send_response(OAUTH_ERROR_USER_CANCELED, oauth_full);
-	}
+	dlog_print(DLOG_DEBUG, LOG_TAG, "oauth back key");
+	__send_response(OAUTH_ERROR_USER_CANCELED);
 }
 
 /*Step 2 : Get Authorization (User enters his/her credentials, and allows access to this app)*/
 static int
-__show_web_view(oauth_provider_data_full_s *oauth_full, const char *url)
+__show_web_view(const char *url)
 {
 	int w = 360;
 	int h = 360;
@@ -295,13 +281,13 @@ void oauth_login()
 	fclose(fp);
 	token = NULL;
 
-	oauth_provider_data_full_s *oauth_full = calloc(1, sizeof(oauth_provider_data_full_s));
+	oauth_full = calloc(1, sizeof(oauth_provider_data_full_s));
 
 	char url[MAX_URL_LEN] = {0, };
 	snprintf(url, MAX_URL_LEN - 1, "%s?response_type=code&scope=write&redirect_uri=%s&client_id=%s",
 			OAUTH_AUTH_URL, OAUTH_REDIRECT_URL, OAUTH_CLIENT_ID);
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth auth url: %s", url);
-	__show_web_view(oauth_full, url);
+	__show_web_view(url);
 
 	oauth_full->loading_popup = elm_popup_add(oauth_full->login_win);
 	elm_popup_content_text_wrap_type_set(oauth_full->loading_popup, ELM_WRAP_MIXED);
