@@ -172,8 +172,8 @@ _on_auth_grant_received(const char *reply)
 	curl_easy_setopt(__curl, CURLOPT_WRITEDATA, &data);
 	curl_easy_setopt(__curl, CURLOPT_WRITEFUNCTION, __store_curl_response);
 	
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
-	curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+	curl_easy_setopt(__curl, CURLOPT_TIMEOUT, 60L);
+	curl_easy_setopt(__curl, CURLOPT_FAILONERROR, true);
 
 	CURLcode resp = curl_easy_perform(__curl);
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth token response: %s", data);
@@ -313,8 +313,6 @@ static bool deauthorize() {
 	/* always cleanup */
 	curl_easy_cleanup(curl);
 
-	/* then cleanup the formpost chain */
-	curl_formfree(formpost);
 	/* free slist */
 	curl_slist_free_all(headerlist);
 	free(data);

@@ -83,7 +83,7 @@ void encode_fit(double latitude, double longitude, double altitude, int heart_ra
     strftime(buf, sizeof buf, "%FT%TZ", gmtime(&now));
 	fprintf(fp, "<trkpt lat=\"%0.9f\" lon=\"%0.9f\">", latitude, longitude);
 	if (heart_rate > 0) {
-		fprintf(fp, "<hr>%d</hr>", heart_rate);
+		fprintf(fp, "<extensions><gpxtpx:TrackPointExtension><gpxtpx:hr>%d</gpxtpx:hr></gpxtpx:TrackPointExtension></extensions>", heart_rate);
 	}
 	fprintf(fp, "<ele>%0.2f</ele><hr>%d</hr><time>%s</time></trkpt>", altitude, heart_rate, buf);
 

@@ -15,7 +15,7 @@
 
 #define POSITION_UPDATE_INTERVAL 1
 #define SAT_UPDATE_INTERVAL 5
-#define UPDATE_TOL 10.0
+#define UPDATE_TOL 5.0
 #define MIN_UPDATE 3
 
 typedef struct {
@@ -284,6 +284,10 @@ void gps_destroy() {
 }
 
 static double distance_raw(double lat1, double long1, double lat2, double long2) {
+	double d;
+	location_manager_get_distance(lat1, long1, lat2, long2, &d);
+	return d;
+	/*
 	double r = 6371e3;
 	double phi1 = lat1 * 3.14159265358979 / 180.0;
 	double phi2 = lat2 * 3.14159265358979 / 180.0;
@@ -296,6 +300,7 @@ static double distance_raw(double lat1, double long1, double lat2, double long2)
 	double c = 2.0 * atan2(sqrt(a), sqrt(1-a));
 
 	return r * c;
+	*/
 }
 
 
@@ -304,11 +309,13 @@ static double distance(location_time* l1, location_time* l2) {
 }
 
 static double intersect(location_time* l1, location_time* l2, location_time* ll) {
+	double longRatio = cos(l1->latitude * 3.14159265358979 / 180.0);
+	
 	double dlat = ll->latitude - l1->latitude;
 	double dlong = ll->longitude - l1->longitude;
-	double dn2 = (dlat*dlat + dlong*dlong);
+	double dn2 = (dlat*dlat + dlong*dlong*longRatio*longRatio);
 
-	double t = ((l2->latitude - l1->latitude) * dlat + (l2->longitude - l1->longitude) * dlong);
+	double t = ((l2->latitude - l1->latitude) * dlat + (l2->longitude - l1->longitude) * dlong*longRatio*longRatio);
 	double nlat = l1->latitude;
 	double nlong = l1->longitude;
 
@@ -442,7 +449,7 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 	loc->heart_rate = get_last_hr();
 	loc->time = time;
 
-	loc->err = hor;
+	loc->err = hor * 0.5;
 
 	loc->next = NULL;
 
