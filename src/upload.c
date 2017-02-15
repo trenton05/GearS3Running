@@ -45,7 +45,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 }
 
 
-bool upload_fit(char* file, char* token) {
+bool upload_fit(const char* file, const char* token) {
 
 	  CURL *curl;
 

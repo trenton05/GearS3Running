@@ -11,6 +11,13 @@
 
 /* event handler declarations */
 void view1_topLabel_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_bottomLabel_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 void view1_exitButton_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 
 uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callback_param) {
@@ -28,6 +35,13 @@ uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callba
 
 	//bind event handler
 	evas_object_smart_callback_add(vc->topLabel, "clicked", (Evas_Smart_Cb)view1_topLabel_onclicked, vc);
+	evas_object_smart_callback_add(vc->l1, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
+	evas_object_smart_callback_add(vc->l2, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
+	evas_object_smart_callback_add(vc->l3, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
+	evas_object_smart_callback_add(vc->bottomLabel, "clicked", (Evas_Smart_Cb)view1_bottomLabel_onclicked, vc);
+	evas_object_smart_callback_add(vc->v1, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
+	evas_object_smart_callback_add(vc->v2, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
+	evas_object_smart_callback_add(vc->v3, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
 	evas_object_smart_callback_add(vc->exitButton, "clicked", (Evas_Smart_Cb)view1_exitButton_onclicked, vc);
 
 
@@ -50,7 +64,7 @@ void uib_view1_config_CIRCLE_360x360_portrait() {
 			vc->topLabel = elm_label_add(vc->grid1);
 		}
 		if(vc->topLabel) {
-			evas_object_size_hint_align_set(vc->topLabel, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->topLabel, 1.0, 1.0);			elm_object_text_set(vc->topLabel,_UIB_LOCALE("Pace"));
+			evas_object_size_hint_align_set(vc->topLabel, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->topLabel, 1.0, 1.0);			elm_object_text_set(vc->topLabel,_UIB_LOCALE("Start"));
 			elm_label_line_wrap_set(vc->topLabel, (Elm_Wrap_Type)ELM_WRAP_NONE);
 			elm_label_wrap_width_set(vc->topLabel,0);
 			elm_label_ellipsis_set(vc->topLabel, EINA_FALSE);
@@ -114,7 +128,8 @@ void uib_view1_config_CIRCLE_360x360_portrait() {
 			vc->bottomLabel = elm_label_add(vc->grid1);
 		}
 		if(vc->bottomLabel) {
-			evas_object_size_hint_align_set(vc->bottomLabel, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->bottomLabel, 1.0, 1.0);			elm_label_line_wrap_set(vc->bottomLabel, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			evas_object_size_hint_align_set(vc->bottomLabel, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->bottomLabel, 1.0, 1.0);			elm_object_text_set(vc->bottomLabel,_UIB_LOCALE("Login"));
+			elm_label_line_wrap_set(vc->bottomLabel, (Elm_Wrap_Type)ELM_WRAP_NONE);
 			elm_label_wrap_width_set(vc->bottomLabel,0);
 			elm_label_ellipsis_set(vc->bottomLabel, EINA_FALSE);
 			evas_object_show(vc->bottomLabel);

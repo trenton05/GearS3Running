@@ -6,6 +6,7 @@
         <icon>runner.png</icon>
     </ui-application>
     <privileges>
+        <privilege>http://tizen.org/privilege/network.get</privilege>
         <privilege>http://tizen.org/privilege/healthinfo</privilege>
         <privilege>http://tizen.org/privilege/appmanager.launch</privilege>
         <privilege>http://tizen.org/privilege/location</privilege>

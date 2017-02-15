@@ -3,7 +3,7 @@
 
 #include <app.h>
 
-bool upload_fit(char* file, char* token);
+bool upload_fit(const char* file, const char* token);
 
 #endif /* __UPLOAD_H__ */
 

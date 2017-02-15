@@ -16,7 +16,6 @@
 #define POSITION_UPDATE_INTERVAL 1
 #define SAT_UPDATE_INTERVAL 5
 #define UPDATE_TOL 10.0
-#define ALT_UPDATE_TOL 0.1
 #define MIN_UPDATE 3
 
 typedef struct {
@@ -46,27 +45,20 @@ typedef struct {
 static location_summary* am_summary = NULL;
 static location_summary* km_summary = NULL;
 static location_summary* hm_summary = NULL;
-static location_summary* alt_summary = NULL;
-static location_summary* altdm_summary = NULL;
 
 #define TEXT_SIZE 10
 static char* amText = NULL;
 static char* hmText = NULL;
 static char* kmText = NULL;
-static char* dText = NULL;
-static char* altText = NULL;
-static char* altdmText = NULL;
+static char* aText = NULL;
+static char* sText = NULL;
+static char* mText = NULL;
 
-static int distCount = 0;
-static int altCount = 0;
+static int locCount = 0;
 static location_time* firstLoc = NULL;
-static location_time* distLoc = NULL;
-static location_time* altLoc = NULL;
 static location_time* lastLoc = NULL;
 static location_inc* firstInc = NULL;
 static location_inc* lastInc = NULL;
-static location_inc* firstAltInc = NULL;
-static location_inc* lastAltInc = NULL;
 
 static location_manager_h manager = NULL;
 
@@ -76,6 +68,7 @@ static void __position_updated_cb(double latitude, double longitude, double alti
 static void __satellite_updated_cb(int number_of_active, int number_inview, time_t timestamp, void *data);
 
 static bool updated = false;
+static double lastAlt = 0.0;
 
 location_summary* init_summary() {
 	location_summary* l = malloc(sizeof(location_summary));
@@ -102,9 +95,13 @@ void update_summary(location_summary* summary, location_inc* location, double me
 }
 
 void get_speed(char* chs, double meters, double seconds) {
-	int index = 8;
+	int index = 9;
 	chs[index--] = 0;
-	int i = seconds >= 0.1 ? (int)(meters / seconds * 3600.0/1000.0 * 10.0 + 0.5) : 0.0;
+	chs[index--] = 'h';
+	chs[index--] = 'p';
+	chs[index--] = 'k';
+	int i = seconds >= 0.1 ? (int)(meters / seconds * 3600.0/1000.0 * 100.0 + 0.5) : 0.0;
+	chs[index--] = '0' + (i % 10);
 	chs[index--] = '0' + (i % 10);
 	i /= 10;
 	chs[index--] = '.';
@@ -121,7 +118,7 @@ void get_speed(char* chs, double meters, double seconds) {
 }
 
 void get_meters(char* chs, double meters, double seconds, double target) {
-	int index = 8;
+	int index = 9;
 	chs[index--] = 0;
 	chs[index--] = 'm';
 	int i = seconds >= 1.0 && target >= 1.0 ? (int)(meters * target / seconds + 0.5) : (int)(meters + 0.5);
@@ -162,66 +159,84 @@ void get_time(char* chs, double seconds, double meters, double target) {
 	}
 }
 
+static bool pace = true;
+static bool running = false;
+void gps_toggle_label() {
+	pace = !pace;
+	gps_update();
+}
+
+void gps_toggle_running() {
+	running = !running;
+
+	if (!running) {
+		while (firstLoc != NULL) {
+			location_time* next = firstLoc->next;
+			next->prev = NULL;
+			free(firstLoc);
+			firstLoc = next
+		}
+		lastLoc = NULL;
+
+		pause_fit();
+	} else {
+		resume_fit();
+	}
+
+	gps_update();
+}
+
 void gps_update(){
 	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
-
-	int type = get_label_type();
 
 	elm_object_text_set(vc->l1,"*m");
 	elm_object_text_set(vc->l2,"km");
 	elm_object_text_set(vc->l3,"hm");
 
-	if (type == PACE_LABEL) {
+	if (running) {
+		elm_object_text_set(vc->topLabel, "Pause");
+	} else {
+		elm_object_text_set(vc->topLabel, "Resume");
+	}
+
+	if (pace) {
 		get_time(amText, am_summary->seconds, am_summary->meters, 1000.0);
 		get_time(kmText, km_summary->seconds, km_summary->meters, 1000.0);
 		get_time(hmText, hm_summary->seconds, hm_summary->meters, 1000.0);
 
-		elm_object_text_set(vc->topLabel,"Pace");
-	} else if (type == SPEED_LABEL) {
+	} else {
 		get_speed(amText, am_summary->meters, am_summary->seconds);
 		get_speed(kmText, km_summary->meters, km_summary->seconds);
 		get_speed(hmText, hm_summary->meters, hm_summary->seconds);
 
-		elm_object_text_set(vc->topLabel,"Speed");
 	}
 
-	get_meters(altText, alt_summary->meters, -1.0, -1.0);
-	get_time(altdmText, am_summary->seconds, -1.0, -1.0);
-	get_meters(dText, am_summary->meters, -1.0, -1.0);
+	get_meters(aText, lastAlt, -1.0, -1.0);
+	get_time(sText, am_summary->seconds, -1.0, -1.0);
+	get_meters(mText, am_summary->meters, -1.0, -1.0);
 
-	elm_object_text_set(vc->bottomLabel,"Elev");
 	elm_object_text_set(vc->l4,"dis");
 	elm_object_text_set(vc->l5,"tim");
 	elm_object_text_set(vc->l6,"ele");
-	elm_object_text_set(vc->v4,dText);
-	elm_object_text_set(vc->v5,altdmText);
-	elm_object_text_set(vc->v6,altText);
+	elm_object_text_set(vc->v4,mText);
+	elm_object_text_set(vc->v5,sText);
+	elm_object_text_set(vc->v6,aText);
 
 
 	elm_object_text_set(vc->v1,amText);
 	elm_object_text_set(vc->v2,kmText);
 	elm_object_text_set(vc->v3,hmText);
-	elm_object_text_set(vc->v3,dText);
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
 }
 
 bool gps_init(){
 
-	time_t t;
-	time(&t);
-
-	char* file = malloc(64);
-	sprintf(file, "/tmp/data%d.gpx", (int) t);
-	start_fit(file);
-
 	amText = malloc(TEXT_SIZE);
 	kmText = malloc(TEXT_SIZE);
 	hmText = malloc(TEXT_SIZE);
 	dText = malloc(TEXT_SIZE);
-	altText = malloc(TEXT_SIZE);
-	altdmText = malloc(TEXT_SIZE);
 
 	am_summary = init_summary();
 	hm_summary = init_summary();
@@ -257,9 +272,6 @@ bool gps_init(){
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Started location services");
 	return true;
 
-}
-
-void gps_alive() {
 }
 
 void gps_destroy() {
@@ -331,16 +343,18 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 static void update_increment() {
 	location_inc* inc = malloc(sizeof(location_inc));
 
-	location_time* nextLoc = distLoc->next;
+	location_time* nextLoc = firstLoc->next;
 
-	inc->meters = intersect(distLoc, nextLoc, lastLoc);
-	inc->seconds = nextLoc->time - distLoc->time;
+	inc->meters = intersect(firstLoc, nextLoc, lastLoc);
+	inc->seconds = nextLoc->time - firstLoc->time;
 
-	encode_fit(distLoc->latitude, distLoc->longitude, distLoc->altitude, distLoc->heart_rate, distLoc->time);
+	encode_fit(firstLoc->latitude, firstLoc->longitude, firstLoc->altitude, firstLoc->heart_rate, firstLoc->time);
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
 
-	distLoc = nextLoc;
-	distCount--;
+	nextLoc->prev = NULL;
+	free(firstLoc);
+	firstLoc = nextLoc;
+	locCount--;
 
 
 	inc->next = NULL;
@@ -370,47 +384,6 @@ static void update_increment() {
 	gps_update();
 }
 
-static void update_alt_increment() {
-	location_inc* inc = malloc(sizeof(location_inc));
-
-	location_time* nextLoc = altLoc->next;
-
-	inc->meters = nextLoc->altitude - altLoc->altitude;
-	if (inc->meters < 0.0) inc->meters = 0.0;
-	inc->seconds = nextLoc->time - altLoc->time;
-
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
-
-	altLoc = nextLoc;
-	altCount--;
-
-
-	inc->next = NULL;
-
-	if (lastAltInc == NULL) {
-		firstAltInc = inc;
-		inc->prev = NULL;
-	} else {
-		inc->prev = lastAltInc;
-		lastAltInc->next = inc;
-	}
-
-	lastAltInc = inc;
-
-	update_summary(alt_summary, inc, -1, -1);
-	update_summary(altdm_summary, inc, -1, 60.0);
-
-	while (firstAltInc != altdm_summary->location
-			&& firstAltInc != lastAltInc) {
-		location_inc* next = firstAltInc->next;
-		next->prev = NULL;
-		free(firstAltInc);
-		firstAltInc = next;
-	}
-
-	gps_update();
-}
-
 static void __satellite_updated_cb(int num_of_active, int num_of_inview, time_t timestamp, void *user_data) {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Satellite: %d, %d", num_of_active, num_of_inview);
 }
@@ -430,6 +403,8 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 			lastLoc->altitude == altitude) {
 		return;
 	}
+
+	lastAlt = altitude;
 
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -452,6 +427,10 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 		elm_object_text_set(vc->v6,"");
 
 		uib_views_get_instance()->uib_views_current_view_redraw();
+	}
+
+	if (!running) {
+		return;
 	}
 
 	location_time* loc = malloc(sizeof(location_time));
@@ -478,28 +457,14 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 
 	lastLoc = loc;
 
-	distCount++;
-	altCount++;
+	locCount++;
 
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "New location: %f, %f, %f, %d", latitude, longitude, distance(firstLoc, lastLoc), distCount);
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "Times: %f, %d", loc->time, timestamp);
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "Old location: %f, %f, %d, %f, %d", firstLoc->latitude, firstLoc->longitude);
 
-	while (distCount >= MIN_UPDATE &&
-			(distance(distLoc, lastLoc) >= UPDATE_TOL + distLoc->err + lastLoc->err)) {
+	while (locCount >= MIN_UPDATE &&
+			(distance(firstLoc, lastLoc) >= UPDATE_TOL + firstLoc->err + lastLoc->err)) {
 		update_increment();
-	}
-
-	while (altCount >= MIN_UPDATE &&
-			fabs(altLoc->altitude - lastLoc->altitude) >= ALT_UPDATE_TOL + altLoc->err + lastLoc->err) {
-		update_alt_increment();
-	}
-
-	while (firstLoc != distLoc && firstLoc != altLoc
-			&& firstLoc != lastLoc) {
-		location_time* next = firstLoc->next;
-		next->prev = NULL;
-		free(firstLoc);
-		firstLoc = next;
 	}
 }

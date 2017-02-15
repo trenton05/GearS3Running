@@ -104,9 +104,6 @@ bool hrm_init(){
 	return true;
 }
 
-void hrm_alive() {
-}
-
 void hrm_destroy() {
 	sensor_listener_stop(sensor_listener);
 	sensor_listener_unset_event_cb(sensor_listener);

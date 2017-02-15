@@ -4,6 +4,7 @@
 ********************************************************************************/
 
 #include "app_main.h"
+#include "gps.h"
 #include "uib_views.h"
 #include "uib_views_inc.h"
 
@@ -17,5 +18,13 @@ void view1_exitButton_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 }
 
 void view1_topLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	toggle_label_type();
+}
+
+void view1_bottomLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	toggle_label_type();
+}
+
+void view1_label_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
 	toggle_label_type();
 }

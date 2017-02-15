@@ -6,6 +6,7 @@
 #include "oauth_handler.h"
 #include "encode.h"
 #include "upload.h"
+#include <dirent.h>
 #include <device/power.h>
 #include <device/display.h>
 #include <device/callback.h>
@@ -87,49 +88,42 @@ app_get_resource(const char *res_file_in, char *res_path_out, int res_path_max)
 	}
 }
 
-static oauth_provider_data_s* provider;
-static oauth_provider_app_info_s* app_info;
-
-void _access_token_received_cb(oauth_error_e error, const oauth_provider_token_s* token, void* user_data) {
-	if (error != OAUTH_ERROR_NONE) {
-		dlog_print(DLOG_ERROR, LOG_TAG, "Unable to get access token for upload");
-	} else {
-		upload_fit(get_fit(), token->acc_tok_key);
-	}
-	ui_app_exit();
-}
-
-static int label_type = PACE_LABEL;
-void toggle_label_type() {
-	label_type = (label_type + 1) % 2;
-	gps_update();
-}
-
-int get_label_type() {
-	return label_type;
-}
-
+static bool exiting = false;
 void clean_exit() {
+	if (!exiting) {
+		exiting = true;
+		stop_fit();
 
-	stop_fit();
+		char* token = oauth_access_token();
 
-	provider = malloc(sizeof(oauth_provider_data_s));
-	provider->provider_name = "Strava";
-	provider->token_url = OAUTH_TOKEN_URL;
-	provider->auth_url = OAUTH_AUTH_URL;
-	provider->acc_tok_url = OAUTH_TOKEN_URL;
+		if (token) {
+			DIR* d;
+			struct dirent* dir;
+			d = opendir("~/");
+			if (d) {
+				while ((dir = readdir(d)) != NULL) {
+					char* file = dir->d_name;
+					if (strncmp(file, FILE_PREFIX, sizeof(FILE_PREFIX)) == 0) {
+						if (!upload_fit(file, token)) {
+							uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+							uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-	app_info = malloc(sizeof(oauth_provider_app_info_s));
-	app_info->cons_key = OAUTH_CLIENT_ID;
-	app_info->cons_secret = OAUTH_CLIENT_SECRET;
+							elm_object_text_set(vc->bottomLabel,"Failed");
 
-	upload_fit(get_fit(), "1b63bb1bbeb322635b9bafc31601b69ea5938aaf");
+							uib_views_get_instance()->uib_views_current_view_redraw();
+							return;
+						} else {
+							remove(file);
+						}
+
+					}
+				}
+				closedir(d);
+			}
+		}
+	}
+
 	ui_app_exit();
-//	if (get_access_token(provider, _access_token_received_cb, NULL) != OAUTH_ERROR_NONE) {
-//		dlog_print(DLOG_ERROR, LOG_TAG, "Unable to get access token for upload");
-//		ui_app_exit();
-//		return;
-//	}
 }
 
 static void _on_display_changed(device_callback_e type, void *value, void *user_data) {
@@ -175,6 +169,16 @@ static bool _on_create_cb(void *user_data)
 	uib_views_get_instance()->uib_views_current_view_redraw();
 
 	device_add_callback(DEVICE_CALLBACK_DISPLAY_STATE, _on_display_changed, NULL);
+
+	oauth_init();
+
+	time_t t;
+	time(&t);
+
+	char* file = malloc(64);
+	sprintf(file, FILE_FORMAT, (int) t);
+	start_fit(file);
+
 	gps_init();
 	hrm_init();
 	/*

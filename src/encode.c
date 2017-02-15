@@ -20,21 +20,40 @@
 static FILE* fp;
 static char* file;
 static bool started = false;
+static bool running = false;
 
 char* get_fit() {
 	return file;
 }
 
-void start_fit(char* name) {
+void fit_init(char* name) {
 	file = name;
 
-	   fp = fopen(file, "w+b");
+	   fp = fopen(file, "w");
 
 	   fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", fp);
 	   fputs("<gpx creator=\"GearS3Running\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">", fp);
-	   fputs("<trk><trkseg>", fp);
+	   fputs("<trk>", fp);
 
 	started = true;
+}
+
+void resume_fit() {
+	if (!started) return;
+
+	if (!running) {
+		running = true;
+		fputs("<trkseg>", fp);
+	}
+}
+
+void pause_fit() {
+	if (!started) return;
+
+	if (running) {
+		running = false;
+		fputs("</trkseg>", fp);
+	}
 }
 
 void stop_fit() {

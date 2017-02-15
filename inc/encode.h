@@ -5,6 +5,8 @@
 
 char* get_fit();
 void start_fit(char* file);
+void pause_fit();
+void resume_fit();
 void encode_fit(double latitude, double longitude, double altitude, int heart_rate, double time);
 void stop_fit();
 

@@ -15,6 +15,9 @@
  *
  */
 
+
+#include "g_inc_uib.h"
+#include "stdio.h"
 #include <stddef.h>
 #include <glib.h>
 #include <curl/curl.h>
@@ -29,6 +32,9 @@
 
 #include "oauth_handler.h"
 
+#include "uib_views.h"
+#include "app_main.h"
+
 #define SAFE_DELETE(x) do { \
 		if (x != NULL) {\
 			free(x);\
@@ -39,24 +45,13 @@
 static CURL *__curl = NULL;
 
 typedef struct _oauth_provider_data_full {
-	oauth_provider_data_s *provider_info;
-	char *token_temp;
-	char *verifier_temp;
-	oauth_provider_token_s *token;
-	void *user_data;
-	on_access_token_received_cb cb;
-
 	Evas_Object *login_win;
 	Evas_Object *content_box;
 	Evas_Object *loading_popup;
 	Evas_Object *ewk_view;
 } oauth_provider_data_full_s;
 
-typedef struct _oauth_data_internal {
-	oauth_provider_data_s *provider_data;
-	on_access_token_received_cb cb;
-	void *user_data;
-} oauth_data_internal_s;
+static char* token = NULL;
 
 static void
 __hide_web_view(oauth_provider_data_full_s *oauth_full)
@@ -91,29 +86,6 @@ __destroy_oauth_provider_full(oauth_provider_data_full_s *pro_full)
 	pro_full->loading_popup = NULL;
 	pro_full->content_box = NULL;
 
-	if (pro_full->provider_info != NULL) {
-		SAFE_DELETE(pro_full->provider_info->provider_name);
-		SAFE_DELETE(pro_full->provider_info->token_url);
-		SAFE_DELETE(pro_full->provider_info->auth_url);
-		SAFE_DELETE(pro_full->provider_info->acc_tok_url);
-
-		if (pro_full->provider_info->app_info != NULL) {
-			SAFE_DELETE(pro_full->provider_info->app_info->cons_key);
-			SAFE_DELETE(pro_full->provider_info->app_info->cons_secret);
-		}
-
-		SAFE_DELETE(pro_full->provider_info);
-	}
-
-	SAFE_DELETE(pro_full->token_temp);
-	SAFE_DELETE(pro_full->verifier_temp);
-
-	if (pro_full->token != NULL) {
-		SAFE_DELETE(pro_full->token->acc_tok_key);
-		SAFE_DELETE(pro_full->token->acc_tok_secret);
-		SAFE_DELETE(pro_full->token);
-	}
-
 	SAFE_DELETE(pro_full);
 }
 
@@ -122,70 +94,29 @@ __send_response(oauth_error_e err, oauth_provider_data_full_s *provider_full)
 {
 	__hide_web_view(provider_full);
 
-	if (provider_full != NULL)
-		(provider_full->cb)(err, provider_full->token, provider_full->user_data);
-	else
-		(provider_full->cb)(OAUTH_ERROR_SYSTEM, NULL, NULL);
+	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+	if (err != 0) {
+		dlog_print(DLOG_ERROR, LOG_TAG, "Oauth err: %d", err);
+		if (err == OAUTH_ERROR_USER_CANCELED) {
+			elm_object_text_set(vc->bottomLabel,"Login");
+		} else {
+			elm_object_text_set(vc->bottomLabel,"Error");
+		}
+	} else {
+		elm_object_text_set(vc->bottomLabel,"Logout");
+
+		FILE* fp = fopen(OAUTH_FILE, "w");
+		fputs(fp, token);
+		fclose(fp);
+	}
+
+	uib_views_get_instance()->uib_views_current_view_redraw();
 
 	__destroy_oauth_provider_full(provider_full);
 }
 
-static char*
-__get_oauth_header(const char *url, const char *key, const char *sec, const char *token, const char *token_sec)
-{
-	const char *request_token_uri = url;
-	const char *req_c_key = key;
-	const char *req_c_secret = sec;
-
-	char *req_url = NULL;
-	char *req_hdr = NULL;
-
-	int argc;
-	char **argv = NULL;
-
-	argc = oauth_split_url_parameters(request_token_uri, &argv);
-
-	oauth_sign_array2_process(&argc, &argv,
-		NULL,
-		OA_HMAC,
-		NULL,
-		req_c_key, req_c_secret, token, token_sec);
-
-	req_hdr = oauth_serialize_url_sep(argc, 1, argv, ", ", 6);
-
-	req_url = oauth_serialize_url_sep(argc, 0, argv, "&", 1);
-
-	oauth_free_array(&argc, &argv);
-
-	char http_header_full[MAX_URL_LEN] = {0, };
-	snprintf(http_header_full, MAX_URL_LEN - 1, "Authorization: OAuth %s", req_hdr);
-
-	if (req_url)
-		free(req_url);
-
-	if (req_hdr)
-		free(req_hdr);
-
-	return strdup(http_header_full);
-}
-
-
-static int
-__parse_reply(const char *reply, char **token, char **secret)
-{
-	gchar **full_list = g_strsplit(reply, "&", 5);
-
-	char *token_full = full_list[0];
-	char *sec_full = full_list[1];
-
-	gchar **token_list = g_strsplit(token_full, "=", 3);
-	*token = strdup(token_list[1]);
-
-	gchar **sec_list = g_strsplit(sec_full, "=", 3);
-	*secret = strdup(sec_list[1]);
-
-	return 0;
-}
 
 static size_t
 __store_curl_response(void *ptr, size_t size, size_t nmemb, void *data)
@@ -204,60 +135,10 @@ __store_curl_response(void *ptr, size_t size, size_t nmemb, void *data)
 	return size * nmemb;
 }
 
-static char*
-__curl_post_request(const char *url, const char *http_header,
-		const char *post_body, int *curl_err, long *http_code)
-{
-	curl_easy_setopt(__curl, CURLOPT_URL, strdup(url));
-
-	if (post_body != NULL)
-		curl_easy_setopt(__curl, CURLOPT_POSTFIELDS, strdup(post_body));
-
-	char *data = NULL;
-	curl_easy_setopt(__curl, CURLOPT_WRITEDATA, &data);
-	curl_easy_setopt(__curl, CURLOPT_WRITEFUNCTION, __store_curl_response);
-	curl_easy_setopt(__curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-
-	if (http_header != NULL) {
-		struct curl_slist *chunk = NULL;
-		chunk = curl_slist_append(chunk, strdup(http_header));
-		curl_easy_setopt(__curl, CURLOPT_HTTPHEADER, chunk);
-	}
-
-	*curl_err = curl_easy_perform(__curl);
-
-	if (*curl_err != CURLE_OK) {
-		curl_easy_cleanup(__curl);
-		__curl = NULL;
-		return NULL;
-	}
-
-	*http_code = 0;
-	curl_easy_getinfo(__curl, CURLINFO_RESPONSE_CODE, http_code);
-
-	curl_easy_cleanup(__curl);
-	__curl = NULL;
-
-	if (*http_code != 200)
-		return NULL;
-
-	return data;
-}
-
 static void
 __on_web_url_load_error(void *data, Evas_Object *obj, void *event_info)
 {
-//	const Ewk_Error *error = (const Ewk_Error *)event_info;
-//	dlog_print(DLOG_INFO, "liboauthsample", "Web Error = [%d]", ewk_error_code_get(error));
-//
-//	if (ewk_error_code_get(error) != EWK_ERROR_CODE_CANCELED) {
-//		oauth_provider_data_full_s *oauth_full = data;
-//		oauth_full->token = NULL;
-//
-//		__send_response(OAUTH_ERROR_NETWORK, oauth_full->user_data);
-//	}
 	oauth_provider_data_full_s *oauth_full = data;
-	oauth_full->token = NULL;
 	__send_response(OAUTH_ERROR_NETWORK, oauth_full->user_data);
 }
 
@@ -271,130 +152,59 @@ __on_web_url_load_finished(void *data, Evas_Object *obj, void *event_info)
 	}
 }
 
-static void
-__parse_acc_token_response(const char *resp, char **token, char **sec)
-{
-	gchar **full_list = g_strsplit(resp, "&", 5);
-
-	int i = 0;
-
-	while (full_list[i] != NULL) {
-		char *str_full = full_list[i];
-		gchar **str_full_list = g_strsplit(str_full, "=", 3);
-
-		char *str_key = str_full_list[0];
-		if ((str_key != NULL) && (strcmp(str_key, "oauth_token") == 0)) {
-			char *str_val = str_full_list[1];
-			*token = strdup(str_val);
-		} else if ((str_key != NULL) && (strcmp(str_key, "oauth_token_secret") == 0)) {
-			char *str_val = str_full_list[1];
-			*sec = strdup(str_val);
-		}
-
-		i++;
-	}
-}
-
-static void
-__start_access_token_request(oauth_provider_data_full_s *oauth_full)
-{
-	if (strcmp(oauth_full->provider_info->provider_name, "tumblr") == 0) {
-		/*Tumblr includes _#_ in oauth_verifier, we need to filter that out*/
-		gchar **verf_list = g_strsplit(oauth_full->verifier_temp, "#", 5);
-		oauth_full->verifier_temp = verf_list[0];
-	}
-
-	char acc_tok_url[MAX_URL_LEN] = {0, };
-	snprintf(acc_tok_url, MAX_URL_LEN - 1, "%s?oauth_verifier=%s", oauth_full->provider_info->acc_tok_url, oauth_full->verifier_temp);
-
-	char *http_header = __get_oauth_header(acc_tok_url, oauth_full->provider_info->app_info->cons_key, oauth_full->provider_info->app_info->cons_secret,
-			oauth_full->token_temp, oauth_full->token->acc_tok_secret);
-
-	int curl_err = CURLE_OK;
-	long http_err = 200;
-
-	if (__curl == NULL)
-		__curl = curl_easy_init();
-
-	char *final_resp = __curl_post_request(oauth_full->provider_info->acc_tok_url, http_header, NULL, &curl_err, &http_err);
-
-	if (final_resp == NULL) {
-		if (curl_err == CURLE_OK) {
-			oauth_full->token = NULL;
-			__send_response(OAUTH_ERROR_SERVER, oauth_full);
-		} else {
-			oauth_full->token = NULL;
-			__send_response(OAUTH_ERROR_NETWORK, oauth_full);
-		}
-
-		return;
-	}
-
-	dlog_print(DLOG_INFO, "liboauthsample", "Final response =[%s]", final_resp);
-
-	char *acc_tok = NULL;
-	char *acc_tok_sec = NULL;
-
-	__parse_acc_token_response(final_resp, &acc_tok, &acc_tok_sec);
-
-	SAFE_DELETE(final_resp);
-	oauth_full->token->acc_tok_key = acc_tok;
-	oauth_full->token->acc_tok_secret = acc_tok_sec;
-
-	__send_response(OAUTH_ERROR_NONE, oauth_full);
-}
 
 /*Step 3 : Get Access Token*/
 static void
 _on_auth_grant_received(oauth_provider_data_full_s *oauth_full, const char *reply)
 {
 	if (reply == NULL) {
-		SAFE_DELETE(oauth_full->token);
 		__send_response(OAUTH_ERROR_SERVER, oauth_full);
 		return;
 	}
 
-	gchar **full_list = g_strsplit(reply, "&", 5);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth code url: %s", reply);
 
-	char *token_full = full_list[0];
-	if (token_full == NULL) {
-		SAFE_DELETE(oauth_full->token);
+	char* code = strchr(reply, '?');
+	if (!code) {
 		__send_response(OAUTH_ERROR_SERVER, oauth_full);
 		return;
 	}
 
-	if (full_list[1] == NULL) {
-		SAFE_DELETE(oauth_full->token);
+	__curl = curl_easy_init();
+	curl_easy_setopt(__curl, CURLOPT_URL, OAUTH_TOKEN_URL);
+
+	char post[MAX_STR_LEN] = {0, };
+	snprintf(post, MAX_STR_LEN - 1, "client_id=%s&client_secret=%s&%s",
+			OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, code);
+	curl_easy_setopt(__curl, CURLOPT_POSTFIELDS, strdup(post));
+
+	char *data = NULL;
+	curl_easy_setopt(__curl, CURLOPT_WRITEDATA, &data);
+	curl_easy_setopt(__curl, CURLOPT_WRITEFUNCTION, __store_curl_response);
+
+	CURLcode resp = curl_easy_perform(__curl);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth token response: %s", data);
+
+	if (resp != CURLE_OK) {
+		curl_easy_cleanup(__curl);
+		__curl = NULL;
 		__send_response(OAUTH_ERROR_SERVER, oauth_full);
 		return;
 	}
 
-	char *verf_full = full_list[1];
-	if (verf_full == NULL) {
-		SAFE_DELETE(oauth_full->token);
+	curl_easy_cleanup(__curl);
+
+	char* access = strstr(data, "\"access_token\"");
+	char* start = access ? strchr(access + 14, '\"') : NULL;
+	char* end = start ? strchr(start + 1, '\"') : NULL;
+	if (!end) {
 		__send_response(OAUTH_ERROR_SERVER, oauth_full);
 		return;
 	}
 
-	gchar **token_list = g_strsplit(token_full, "=", 3);
+	token = strndup(start + 1, end - start - 1);
 
-	if (oauth_full->token_temp != NULL) {
-		free(oauth_full->token_temp);
-		oauth_full->token_temp = NULL;
-	}
-
-	oauth_full->token_temp = strdup(token_list[1]);
-
-	gchar **verf_list = g_strsplit(verf_full, "=", 3);
-	if (verf_list == NULL) {
-		SAFE_DELETE(oauth_full->token);
-		__send_response(OAUTH_ERROR_SERVER, oauth_full);
-		return;
-	}
-
-	oauth_full->verifier_temp = strdup(verf_list[1]);
-
-	__start_access_token_request(oauth_full);
+	__send_response(0, oauth_full);
 }
 
 static void
@@ -406,8 +216,7 @@ __on_web_url_change(void *data, Evas_Object *obj, void *event_info)
 
 	if (g_str_has_prefix(uri, OAUTH_REDIRECT_URL) == TRUE) {
 		__hide_web_view(oauth_full);
-		char *oauth_response = strdup(uri);
-		_on_auth_grant_received(oauth_full, oauth_response);
+		_on_auth_grant_received(oauth_full, uri);
 
 		if (oauth_full->loading_popup == NULL) {
 			oauth_full->loading_popup = elm_popup_add(oauth_full->login_win);
@@ -424,7 +233,6 @@ __handle_back_key(void *data, Evas_Object *p, void *info)
 {
 	if (data) {
 		oauth_provider_data_full_s *oauth_full = data;
-		SAFE_DELETE(oauth_full->token);
 		__send_response(OAUTH_ERROR_USER_CANCELED, oauth_full);
 	}
 }
@@ -433,11 +241,8 @@ __handle_back_key(void *data, Evas_Object *p, void *info)
 static int
 __show_web_view(oauth_provider_data_full_s *oauth_full, const char *url)
 {
-	int w = 400;
-	int h = 400;
-
-	system_info_get_platform_int("tizen.org/feature/screen.width", &w);
-	system_info_get_platform_int("tizen.org/feature/screen.height", &h);
+	int w = 240;
+	int h = 240;
 
 	oauth_full->login_win = elm_win_util_standard_add("Login", "");
 	eext_object_event_callback_add(oauth_full->login_win, EEXT_CALLBACK_BACK, __handle_back_key, oauth_full);
@@ -483,48 +288,18 @@ __show_web_view(oauth_provider_data_full_s *oauth_full, const char *url)
 }
 
 /*Step 1 : Get Request Token*/
-int
-get_access_token(oauth_provider_data_s *provider_data, on_access_token_received_cb cb, void *user_data)
+void oauth_login()
 {
-
-	if (__curl == NULL)
-		__curl = curl_easy_init();
+	FILE* fp = fopen(OAUTH_FILE, "w");
+	fclose(fp);
+	token = NULL;
 
 	oauth_provider_data_full_s *oauth_full = calloc(1, sizeof(oauth_provider_data_full_s));
-	oauth_full->provider_info = provider_data;
-	oauth_full->cb = cb;
-	oauth_full->user_data = user_data;
-
-	char *oauth_header = __get_oauth_header(provider_data->token_url, provider_data->app_info->cons_key, provider_data->app_info->cons_secret, NULL, NULL);
-	int curl_err = 0;
-	long http_code = 0;
-	char *resp = __curl_post_request(provider_data->token_url, oauth_header, NULL, &curl_err, &http_code);
-	if (resp == NULL) {
-		if (curl_err == CURLE_OK)
-			return OAUTH_ERROR_SERVER;
-		else
-			return OAUTH_ERROR_NETWORK;
-	}
-
-	char *token = NULL;
-	char *token_sec = NULL;
-
-	__parse_reply(resp, &token, &token_sec);
-	if ((token == NULL) || (token_sec == NULL)) {
-		SAFE_DELETE(token);
-		SAFE_DELETE(token_sec);
-
-		return OAUTH_ERROR_SERVER;
-	}
-
-	SAFE_DELETE(resp);
-	oauth_full->token_temp = token;
-
-	oauth_full->token = calloc(1, sizeof(oauth_provider_token_s));
-	oauth_full->token->acc_tok_secret = token_sec;
 
 	char url[MAX_URL_LEN] = {0, };
-	snprintf(url, MAX_URL_LEN - 1, "%s?oauth_token=%s", oauth_full->provider_info->auth_url, oauth_full->token_temp);
+	snprintf(url, MAX_URL_LEN - 1, "%s?response_type=code&scope=write&redirect_uri=%s&client_id=%s",
+			OAUTH_AUTH_URL, OAUTH_REDIRECT_URL, OAUTH_CLIENT_ID);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth auth url: %s", url);
 	__show_web_view(oauth_full, url);
 
 	oauth_full->loading_popup = elm_popup_add(oauth_full->login_win);
@@ -534,5 +309,33 @@ get_access_token(oauth_provider_data_s *provider_data, on_access_token_received_
 
 	evas_object_show(oauth_full->loading_popup);
 
-	return OAUTH_ERROR_NONE;
+}
+
+
+char* oauth_access_token() {
+	return token;
+}
+
+void oauth_init() {
+
+	FILE* fp = fopen(OAUTH_FILE, "r");
+	if (fp) {
+		char buf[255];
+		int read = fscanf(fp, "%s", buf);
+		if (read > 0) {
+			token = strdup(buf);
+		}
+		fclose(fp);
+	}
+
+	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+	if (token) {
+		elm_object_text_set(vc->bottomLabel,"Logout");
+	} else {
+		elm_object_text_set(vc->bottomLabel,"Login");
+	}
+
+	uib_views_get_instance()->uib_views_current_view_redraw();
 }

@@ -6,7 +6,8 @@
 bool gps_init();
 void gps_destroy();
 void gps_update();
-void gps_alive();
+void gps_toggle_label();
+void gps_toggle_running();
 
 #endif /* __GPS_H__ */
 
