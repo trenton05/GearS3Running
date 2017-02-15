@@ -28,7 +28,7 @@
 #define OAUTH_TOKEN_URL "https://www.strava.com/oauth/token"
 #define OAUTH_CLIENT_ID "16159"
 #define OAUTH_CLIENT_SECRET "7d36940f3381a84e207cf86af35b3c42ac47aadb"
-#define OAUTH_FILE ".running.strava"
+#define OAUTH_FILE "strava.token"
 
 typedef enum {
 	OAUTH_ERROR_NONE,

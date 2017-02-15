@@ -305,12 +305,19 @@ char* oauth_access_token() {
 
 void oauth_init() {
 
-	FILE* fp = fopen(OAUTH_FILE, "r");
+	char file[255];
+	char* directory = app_get_data_path();
+	strcpy(file, directory);
+	free(directory);
+	strcat(file, OAUTH_FILE);
+
+	FILE* fp = fopen(file, "r");
 	if (fp) {
 		char buf[255];
 		char* read = fgets(buf, 255, fp);
 		if (read) {
 			token = strdup(buf);
+			dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth found token");
 		}
 		fclose(fp);
 	}

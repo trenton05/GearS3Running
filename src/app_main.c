@@ -97,14 +97,19 @@ void clean_exit() {
 		char* token = oauth_access_token();
 
 		if (token) {
+			dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading files");
 			DIR* d;
 			char* directory = app_get_data_path();
 			struct dirent* dir;
 			d = opendir(directory);
+
+			bool failed = false;
 			if (d) {
 				while ((dir = readdir(d)) != NULL) {
-					char* file = dir->d_name;
-					if (strncmp(file, FILE_PREFIX, sizeof(FILE_PREFIX)) == 0) {
+					if (strncmp(dir->d_name, FILE_PREFIX, strlen(FILE_PREFIX)) == 0) {
+						char file[255];
+						strcpy(file, directory);
+						strcat(file, dir->d_name);
 						if (!upload_fit(file, token)) {
 							uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 							uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
@@ -112,7 +117,8 @@ void clean_exit() {
 							elm_object_text_set(vc->bottomLabel,"Failed");
 
 							uib_views_get_instance()->uib_views_current_view_redraw();
-							return;
+							failed = true;
+							break;
 						} else {
 							remove(file);
 						}
@@ -120,7 +126,10 @@ void clean_exit() {
 					}
 				}
 				closedir(d);
-				free(directory);
+			}
+			free(directory);
+			if (failed) {
+				return;
 			}
 		}
 	}
