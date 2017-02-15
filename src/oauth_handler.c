@@ -129,7 +129,6 @@ static void
 __on_web_url_load_error(void *data, Evas_Object *obj, void *event_info)
 {
 	dlog_print(DLOG_DEBUG, LOG_TAG, "oauth url load err");
-	__send_response(OAUTH_ERROR_NETWORK);
 }
 
 static void
