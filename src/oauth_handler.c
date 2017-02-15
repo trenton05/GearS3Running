@@ -36,13 +36,6 @@
 #include "uib_app_manager.h"
 #include "uib_view1_view.h"
 
-#define SAFE_DELETE(x) do { \
-		if (x != NULL) {\
-			free(x);\
-			x = NULL;\
-		} \
-} while (0)
-
 static CURL *__curl = NULL;
 
 typedef struct _oauth_provider_data_full {
@@ -87,7 +80,7 @@ __destroy_oauth_provider_full(oauth_provider_data_full_s *pro_full)
 	pro_full->loading_popup = NULL;
 	pro_full->content_box = NULL;
 
-	SAFE_DELETE(pro_full);
+	free(pro_full);
 }
 
 static void
@@ -107,6 +100,7 @@ __send_response(oauth_error_e err, oauth_provider_data_full_s *provider_full)
 		}
 	} else {
 		elm_object_text_set(vc->bottomLabel,"Logout");
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Storing oauth token: %s", token);
 
 		char file[255];
 		char* directory = app_get_data_path();
@@ -224,14 +218,6 @@ __on_web_url_change(void *data, Evas_Object *obj, void *event_info)
 	if (g_str_has_prefix(uri, OAUTH_REDIRECT_URL) == TRUE) {
 		__hide_web_view(oauth_full);
 		_on_auth_grant_received(oauth_full, uri);
-
-		if (oauth_full->loading_popup == NULL) {
-			oauth_full->loading_popup = elm_popup_add(oauth_full->login_win);
-			elm_popup_content_text_wrap_type_set(oauth_full->loading_popup, ELM_WRAP_MIXED);
-			elm_object_text_set(oauth_full->loading_popup, "Loading...");
-			elm_popup_orient_set(oauth_full->loading_popup, ELM_POPUP_ORIENT_BOTTOM);
-			evas_object_show(oauth_full->loading_popup);
-		}
 	}
 }
 
@@ -248,8 +234,8 @@ __handle_back_key(void *data, Evas_Object *p, void *info)
 static int
 __show_web_view(oauth_provider_data_full_s *oauth_full, const char *url)
 {
-	int w = 240;
-	int h = 240;
+	int w = 360;
+	int h = 360;
 
 	oauth_full->login_win = elm_win_util_standard_add("Login", "");
 	eext_object_event_callback_add(oauth_full->login_win, EEXT_CALLBACK_BACK, __handle_back_key, oauth_full);
@@ -273,6 +259,7 @@ __show_web_view(oauth_provider_data_full_s *oauth_full, const char *url)
 
 	ewk_view_url_set(oauth_full->ewk_view, url);
 	evas_object_size_hint_min_set(oauth_full->ewk_view, w, h);
+	evas_object_size_hint_align_set(oauth_full->ewk_view, 0.0, 0.0);
 
 	evas_object_size_hint_weight_set(oauth_full->ewk_view,
 		EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
