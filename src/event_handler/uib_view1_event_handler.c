@@ -19,13 +19,13 @@ void view1_exitButton_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 }
 
 void view1_topLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-	gps_toggle_label();
-}
-
-void view1_bottomLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
 	gps_toggle_running();
 }
 
-void view1_label_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+void view1_bottomLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
 	oauth_login();
+}
+
+void view1_label_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	gps_toggle_label();
 }

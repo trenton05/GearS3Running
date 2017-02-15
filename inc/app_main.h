@@ -6,7 +6,7 @@
 #include "g_inc_uib.h"
 #include "uib_views.h"
 
-#define FILE_FORMAT "~/running%d.gpx"
+#define FILE_FORMAT "running%d.gpx"
 #define FILE_PREFIX "running"
 
 /**

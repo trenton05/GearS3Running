@@ -98,8 +98,9 @@ void clean_exit() {
 
 		if (token) {
 			DIR* d;
+			char* directory = app_get_data_path();
 			struct dirent* dir;
-			d = opendir("~/");
+			d = opendir(directory);
 			if (d) {
 				while ((dir = readdir(d)) != NULL) {
 					char* file = dir->d_name;
@@ -119,6 +120,7 @@ void clean_exit() {
 					}
 				}
 				closedir(d);
+				free(directory);
 			}
 		}
 	}
@@ -158,6 +160,9 @@ static bool _on_create_cb(void *user_data)
 	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
+	elm_object_text_set(vc->topLabel,"Start");
+	elm_object_text_set(vc->bottomLabel,"Login");
+
 	elm_object_text_set(vc->v1,"...");
 	elm_object_text_set(vc->v2,"...");
 	elm_object_text_set(vc->v3,"...");
@@ -170,14 +175,24 @@ static bool _on_create_cb(void *user_data)
 
 	device_add_callback(DEVICE_CALLBACK_DISPLAY_STATE, _on_display_changed, NULL);
 
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Loading oauth");
+
 	oauth_init();
+
 
 	time_t t;
 	time(&t);
 
-	char* file = malloc(64);
-	sprintf(file, FILE_FORMAT, (int) t);
+	char* file = malloc(128);
+	char* directory = app_get_data_path();
+	strcpy(file, directory);
+	free(directory);
+
+	sprintf(file + strlen(file), FILE_FORMAT, (int) t);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Starting fit track in %s", file);
 	start_fit(file);
+
+	dlog_print(DLOG_DEBUG, LOG_TAG, "Starting gps");
 
 	gps_init();
 	hrm_init();

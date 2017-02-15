@@ -170,16 +170,18 @@ void gps_toggle_running() {
 	running = !running;
 
 	if (!running) {
+
 		while (firstLoc != NULL) {
 			location_time* next = firstLoc->next;
-			next->prev = NULL;
 			free(firstLoc);
 			firstLoc = next;
 		}
 		lastLoc = NULL;
 
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Pausing fit");
 		pause_fit();
 	} else {
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Resuming fit");
 		resume_fit();
 	}
 

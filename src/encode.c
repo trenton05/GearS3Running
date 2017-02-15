@@ -36,6 +36,7 @@ void start_fit(char* name) {
 	   fputs("<trk>", fp);
 
 	started = true;
+	resume_fit();
 }
 
 void resume_fit() {
@@ -57,9 +58,11 @@ void pause_fit() {
 }
 
 void stop_fit() {
+	pause_fit();
+
 	started = false;
 
-	fputs("</trkseg></trk></gpx>", fp);
+	fputs("</trk></gpx>", fp);
 
 	   fclose(fp);
 }

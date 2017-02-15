@@ -108,7 +108,13 @@ __send_response(oauth_error_e err, oauth_provider_data_full_s *provider_full)
 	} else {
 		elm_object_text_set(vc->bottomLabel,"Logout");
 
-		FILE* fp = fopen(OAUTH_FILE, "w");
+		char file[255];
+		char* directory = app_get_data_path();
+		strcpy(file, directory);
+		free(directory);
+		strcat(file, OAUTH_FILE);
+
+		FILE* fp = fopen(file, "w");
 		fputs(token, fp);
 		fclose(fp);
 	}
@@ -291,7 +297,14 @@ __show_web_view(oauth_provider_data_full_s *oauth_full, const char *url)
 /*Step 1 : Get Request Token*/
 void oauth_login()
 {
-	FILE* fp = fopen(OAUTH_FILE, "w");
+
+	char file[255];
+	char* directory = app_get_data_path();
+	strcpy(file, directory);
+	free(directory);
+	strcat(file, OAUTH_FILE);
+
+	FILE* fp = fopen(file, "w");
 	fclose(fp);
 	token = NULL;
 

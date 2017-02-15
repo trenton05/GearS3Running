@@ -11,7 +11,7 @@
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="103" weight_h="1" ellipsis="false" align_h="fill"
 					wrap_width="0" pack_w="236" pack_x="367" pack_y="34" id="topLabel"
-					text="Start">
+					text="">
 					<event function_name="view1_topLabel_onclicked" signal="clicked" />	
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
@@ -47,7 +47,7 @@
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="103" weight_h="1" ellipsis="false" align_h="fill"
 					wrap_width="0" pack_w="236" pack_x="367" pack_y="866" id="bottomLabel"
-					text="Login">
+					text="">
 					<event function_name="view1_bottomLabel_onclicked" signal="clicked" />
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
