@@ -273,8 +273,6 @@ static bool deauthorize() {
 
 	  CURLcode res;
 
-	  struct curl_httppost *formpost=NULL;
-	  struct curl_httppost *lastptr=NULL;
 	  struct curl_slist *headerlist=NULL;
 	  char buf[256];
 	  strcpy(buf, "Authorization: Bearer ");
@@ -294,7 +292,7 @@ static bool deauthorize() {
 
 	/* only disable 100-continue header if explicitly requested */
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
-	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+	curl_easy_setopt(curl, CURLOPT_HTTPPOST, NULL);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
 
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Oauth logout");
