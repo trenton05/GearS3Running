@@ -322,8 +322,8 @@ void oauth_init() {
 	FILE* fp = fopen(OAUTH_FILE, "r");
 	if (fp) {
 		char buf[255];
-		int read = fgets(buf, 255, fp);
-		if (read > 0) {
+		char* read = fgets(buf, 255, fp);
+		if (read) {
 			token = strdup(buf);
 		}
 		fclose(fp);
