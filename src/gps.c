@@ -284,10 +284,6 @@ void gps_destroy() {
 }
 
 static double distance_raw(double lat1, double long1, double lat2, double long2) {
-	double d;
-	location_manager_get_distance(lat1, long1, lat2, long2, &d);
-	return d;
-	/*
 	double r = 6371e3;
 	double phi1 = lat1 * 3.14159265358979 / 180.0;
 	double phi2 = lat2 * 3.14159265358979 / 180.0;
@@ -300,7 +296,6 @@ static double distance_raw(double lat1, double long1, double lat2, double long2)
 	double c = 2.0 * atan2(sqrt(a), sqrt(1-a));
 
 	return r * c;
-	*/
 }
 
 
@@ -335,7 +330,7 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 	l2->latitude = nlat;
 	l2->longitude = nlong;
 
-	if (l1->err > 0.0) {
+	if (l1->err > 0.1 && ndist1 > 0.1) {
 		double d1 = l1->err > ndist1 ? ndist1 : l1->err;
 		l1->latitude = l1->latitude + (nlat - l1->latitude) * d1 / ndist1;
 		l1->longitude = l1->longitude + (nlong - l1->longitude) * d1 / ndist1;

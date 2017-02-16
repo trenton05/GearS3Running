@@ -46,7 +46,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 
 
 bool upload_fit(const char* file, const char* token) {
-
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading %s", file);
 	  CURL *curl;
 
 	  CURLcode res;
@@ -99,18 +99,20 @@ bool upload_fit(const char* file, const char* token) {
 	/* only disable 100-continue header if explicitly requested */
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
 	curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
-	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
-	curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
+	//curl_easy_setopt(curl, CURLOPT_TIMEOUT, 60L);
+	//curl_easy_setopt(curl, CURLOPT_FAILONERROR, true);
 
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading FIT");
 	/* Perform the request, res will get the return code */
 	res = curl_easy_perform(curl);
 	/* Check for errors */
+
+	long response_code;
+	curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+	dlog_print(DLOG_DEBUG, LOG_TAG, "FIT Uploaded: %d: %s", response_code, chunk.memory);
 	if(res != CURLE_OK) {
-	  dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %s\n",
+	  dlog_print(DLOG_ERROR, LOG_TAG, "curl_easy_perform() failed: %d: %s\n", res,
 			  curl_easy_strerror(res));
-	} else {
-		dlog_print(DLOG_DEBUG, LOG_TAG, "FIT Uploaded: %s", chunk.memory);
 	}
 
 	/* always cleanup */
