@@ -15,8 +15,11 @@
 
 #define POSITION_UPDATE_INTERVAL 1
 #define SAT_UPDATE_INTERVAL 5
-#define UPDATE_TOL 5.0
+#define UPDATE_TOL 1.0
+#define ERR_FAC 1.0
+#define ERR_INT 0.5
 #define MIN_UPDATE 3
+#define RAD_PER_DEG 3.14159265358979 / 180.0
 
 typedef struct {
 	double meters;
@@ -28,6 +31,9 @@ typedef struct {
 typedef struct {
 	double latitude;
 	double longitude;
+	double d_latitude;
+	double d_longitude;
+	
 	double altitude;
 	int heart_rate;
 	double time;
@@ -284,11 +290,14 @@ void gps_destroy() {
 }
 
 static double distance_raw(double lat1, double long1, double lat2, double long2) {
+	//double d;
+	//location_manager_get_distance(lat1, long1, lat2, long2, &d);
+	//return d;
 	double r = 6371e3;
-	double phi1 = lat1 * 3.14159265358979 / 180.0;
-	double phi2 = lat2 * 3.14159265358979 / 180.0;
+	double phi1 = lat1 * RAD_PER_DEG;
+	double phi2 = lat2 * RAD_PER_DEG;
 	double dp = phi2 - phi1;
-	double dl = (long2 - long1) * 3.14159265358979 / 180.0;
+	double dl = (long2 - long1) * RAD_PER_DEG;
 
 	double a = sin(dp/2.0) * sin(dp/2.0) +
 	        cos(phi1) * cos(phi2) *
@@ -304,22 +313,40 @@ static double distance(location_time* l1, location_time* l2) {
 }
 
 static double intersect(location_time* l1, location_time* l2, location_time* ll) {
-	double longRatio = cos(l1->latitude * 3.14159265358979 / 180.0);
+	
+	
+	double dtl = ll->time - l1->time;
+	double dt2 = l2->time - l1->time;
+	
+	// Find acceleration to get from 1 to 3 with constant acceleration, stop at time 2 for point 2
+	// ll->latitude = l1->latitude + l1->d_latitude * dtl + 0.5 * alat * dtl * dtl;
+	double alat = 2.0*(ll->latitude - l1->latitude - l1->d_latitude * dtl) / (dtl * dtl);
+	double along = 2.0*(ll->longitude - l1->longitude - l1->d_longitude * dtl) / (dtl * dtl);
+	
+	double nlat = l1->latitude + l1->d_latitude * dt2 + 0.5 * alat * dt2 * dt2;
+	double nlong = l1->longitude + l1->d_longitude * dt2 + 0.5 * along * dt2 * dt2;
+	/*
+	double longRatio = cos(l1->latitude * RAD_PER_DEG);
+	
+	double nlat = l1->latitude;
+	double nlong = l1->longitude;
 	
 	double dlat = ll->latitude - l1->latitude;
 	double dlong = ll->longitude - l1->longitude;
 	double dn2 = (dlat*dlat + dlong*dlong*longRatio*longRatio);
 
 	double t = ((l2->latitude - l1->latitude) * dlat + (l2->longitude - l1->longitude) * dlong*longRatio*longRatio);
-	double nlat = l1->latitude;
-	double nlong = l1->longitude;
 
 	if (t > 0 && dn2 != 0.0) {
 		nlat += dlat * t / dn2;
 		nlong += dlong * t / dn2;
 	}
+	*/
+	
+	
+	// If new point is not within l2 error radius, push it to edge of it
 	double dist = distance_raw(nlat, nlong, l2->latitude, l2->longitude);
-	if (dist > l2->err && l2->err > 0.1) {
+	if (dist > l2->err && l2->err > 0.01) {
 		nlat = l2->latitude + (nlat - l2->latitude) * l2->err / dist;
 		nlong = l2->longitude + (nlong - l2->longitude) * l2->err / dist;
 	}
@@ -330,62 +357,77 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 	l2->latitude = nlat;
 	l2->longitude = nlong;
 
-	if (l1->err > 0.1 && ndist1 > 0.1) {
+	// If there is error in l1 (start of tracking only), push it to edge to ignore it
+	if (l1->err > 0.01 && ndist1 > 0.01) {
 		double d1 = l1->err > ndist1 ? ndist1 : l1->err;
 		l1->latitude = l1->latitude + (nlat - l1->latitude) * d1 / ndist1;
 		l1->longitude = l1->longitude + (nlong - l1->longitude) * d1 / ndist1;
 	}
+	
+	//l2->d_latitude = (l2->latitude - l1->latitude) / dt2;
+	//l2->d_longitude = (l2->longitude - l1->longitude) / dt2;
+	// Update velocity at point based on acceleration from point 1 to 3 at time 2
+	l2->d_latitude = alat * dt2;
+	l2->d_longitude = along * dt2;
 
+	// Update l2 error based on min of errors of new position from original positions --
 	double nerr1 = l1->err - ndist1;
 	double nerr2 = l2->err - ndist2;
 	if (nerr1 < 0.0) nerr1 = 0.0;
 	if (nerr2 < 0.0) nerr2 = 0.0;
 	l2->err = nerr2 > nerr1 ? nerr1 : nerr2;
+	
+	// Return distance ignoring error
 	return ndist1 > l1->err ? ndist1 - l1->err : 0.0;
 }
 
 static void update_increment() {
-	location_inc* inc = malloc(sizeof(location_inc));
-
 	location_time* nextLoc = firstLoc->next;
+	
+	double dist = intersect(firstLoc, nextLoc, lastLoc);
+	double time = nextLoc->time - firstLoc->time;
 
-	inc->meters = intersect(firstLoc, nextLoc, lastLoc);
-	inc->seconds = nextLoc->time - firstLoc->time;
+	if (dist > 0.01) {
+		location_inc* inc = malloc(sizeof(location_inc));
+		inc->meters = dist;
+		inc->seconds = time;
 
-	encode_fit(firstLoc->latitude, firstLoc->longitude, firstLoc->altitude, firstLoc->heart_rate, firstLoc->time);
-//	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
+		encode_fit(firstLoc->latitude, firstLoc->longitude, firstLoc->altitude, firstLoc->heart_rate, firstLoc->time);
+	//	dlog_print(DLOG_DEBUG, LOG_TAG, "New increment: %f, %f", inc->meters, inc->seconds);
 
+
+
+		inc->next = NULL;
+
+		if (lastInc == NULL) {
+			firstInc = inc;
+			inc->prev = NULL;
+		} else {
+			inc->prev = lastInc;
+			lastInc->next = inc;
+		}
+
+		lastInc = inc;
+
+		update_summary(am_summary, inc, -1, -1);
+		update_summary(hm_summary, inc, 100, -1);
+		update_summary(km_summary, inc, 1000, -1);
+
+		while (firstInc != hm_summary->location && firstInc != km_summary->location
+				&& firstInc != lastInc) {
+			location_inc* next = firstInc->next;
+			next->prev = NULL;
+			free(firstInc);
+			firstInc = next;
+		}
+
+		gps_update();
+	}
+	
 	nextLoc->prev = NULL;
 	free(firstLoc);
 	firstLoc = nextLoc;
-	locCount--;
-
-
-	inc->next = NULL;
-
-	if (lastInc == NULL) {
-		firstInc = inc;
-		inc->prev = NULL;
-	} else {
-		inc->prev = lastInc;
-		lastInc->next = inc;
-	}
-
-	lastInc = inc;
-
-	update_summary(am_summary, inc, -1, -1);
-	update_summary(hm_summary, inc, 100, -1);
-	update_summary(km_summary, inc, 1000, -1);
-
-	while (firstInc != hm_summary->location && firstInc != km_summary->location
-			&& firstInc != lastInc) {
-		location_inc* next = firstInc->next;
-		next->prev = NULL;
-		free(firstInc);
-		firstInc = next;
-	}
-
-	gps_update();
+	locCount--;	
 }
 
 static void __satellite_updated_cb(int num_of_active, int num_of_inview, time_t timestamp, void *user_data) {
@@ -440,11 +482,13 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 	location_time* loc = malloc(sizeof(location_time));
 	loc->latitude = latitude;
 	loc->longitude = longitude;
+	loc->d_latitude = 0.0;
+	loc->d_longitude = 0.0;
 	loc->altitude = altitude;
 	loc->heart_rate = get_last_hr();
 	loc->time = time;
 
-	loc->err = hor * 0.5;
+	loc->err = hor * ERR_FAC;
 
 	loc->next = NULL;
 
@@ -465,7 +509,7 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 //	dlog_print(DLOG_DEBUG, LOG_TAG, "Old location: %f, %f, %d, %f, %d", firstLoc->latitude, firstLoc->longitude);
 
 	while (locCount >= MIN_UPDATE &&
-			(distance(firstLoc, lastLoc) >= UPDATE_TOL + firstLoc->err + lastLoc->err)) {
+			(distance(firstLoc, lastLoc) >= UPDATE_TOL + (firstLoc->err + lastLoc->err)*ERR_INT)) {
 		update_increment();
 	}
 }
