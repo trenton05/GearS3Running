@@ -28,6 +28,9 @@ typedef struct {
 typedef struct {
 	double latitude;
 	double longitude;
+	double d_latitude;
+	double d_longitude;
+	
 	double altitude;
 	int heart_rate;
 	double time;
@@ -284,10 +287,9 @@ void gps_destroy() {
 }
 
 static double distance_raw(double lat1, double long1, double lat2, double long2) {
-	double d;
-	location_manager_get_distance(lat1, long1, lat2, long2, &d);
-	return d;
-	/*
+	//double d;
+	//location_manager_get_distance(lat1, long1, lat2, long2, &d);
+	//return d;
 	double r = 6371e3;
 	double phi1 = lat1 * 3.14159265358979 / 180.0;
 	double phi2 = lat2 * 3.14159265358979 / 180.0;
@@ -300,7 +302,6 @@ static double distance_raw(double lat1, double long1, double lat2, double long2)
 	double c = 2.0 * atan2(sqrt(a), sqrt(1-a));
 
 	return r * c;
-	*/
 }
 
 
@@ -309,20 +310,36 @@ static double distance(location_time* l1, location_time* l2) {
 }
 
 static double intersect(location_time* l1, location_time* l2, location_time* ll) {
+	
+	
+	double dtl = ll->time - l1->time;
+	double dt2 = l2->time - l1->time;
+	
+	// ll->latitude = l1->latitude + l1->d_latitude * dtl + 0.5 * alat * dtl * dtl;
+	double alat = 2.0*(ll->latitude - l1->latitude - l1->d_latitude * dtl) / (dtl * dtl);
+	double along = 2.0*(ll->longitude - l1->longitude - l1->d_longitude * dtl) / (dtl * dtl);
+	
+	double nlat = l1->latitude + l1->d_latitude * dt2 + 0.5 * alat * dt2 * dt2;
+	double nlong = l1->longitude + l1->d_longitude * dt2 + 0.5 * along * dt2 * dt2;
+	/*
 	double longRatio = cos(l1->latitude * 3.14159265358979 / 180.0);
+	
+	double nlat = l1->latitude;
+	double nlong = l1->longitude;
 	
 	double dlat = ll->latitude - l1->latitude;
 	double dlong = ll->longitude - l1->longitude;
 	double dn2 = (dlat*dlat + dlong*dlong*longRatio*longRatio);
 
 	double t = ((l2->latitude - l1->latitude) * dlat + (l2->longitude - l1->longitude) * dlong*longRatio*longRatio);
-	double nlat = l1->latitude;
-	double nlong = l1->longitude;
 
 	if (t > 0 && dn2 != 0.0) {
 		nlat += dlat * t / dn2;
 		nlong += dlong * t / dn2;
 	}
+	*/
+	
+	
 	double dist = distance_raw(nlat, nlong, l2->latitude, l2->longitude);
 	if (dist > l2->err && l2->err > 0.1) {
 		nlat = l2->latitude + (nlat - l2->latitude) * l2->err / dist;
@@ -335,11 +352,16 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 	l2->latitude = nlat;
 	l2->longitude = nlong;
 
-	if (l1->err > 0.0) {
+	if (l1->err > 0.1 && ndist1 > 0.1) {
 		double d1 = l1->err > ndist1 ? ndist1 : l1->err;
 		l1->latitude = l1->latitude + (nlat - l1->latitude) * d1 / ndist1;
 		l1->longitude = l1->longitude + (nlong - l1->longitude) * d1 / ndist1;
 	}
+	
+	//l2->d_latitude = (l2->latitude - l1->latitude) / dt2;
+	//l2->d_longitude = (l2->longitude - l1->longitude) / dt2;
+	l2->d_latitude = alat * dt2;
+	l2->d_longitude = along * dt2;
 
 	double nerr1 = l1->err - ndist1;
 	double nerr2 = l2->err - ndist2;
@@ -445,6 +467,8 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 	location_time* loc = malloc(sizeof(location_time));
 	loc->latitude = latitude;
 	loc->longitude = longitude;
+	loc->d_latitude = 0.0;
+	loc->d_longitude = 0.0;
 	loc->altitude = altitude;
 	loc->heart_rate = get_last_hr();
 	loc->time = time;
