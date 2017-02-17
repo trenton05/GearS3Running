@@ -69,7 +69,7 @@ void encode_fit(double latitude, double longitude, double altitude, int heart_ra
 	   fp = fopen(file, "w");
 
 	   fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", fp);
-	   fputs("<gpx creator=\"GearS3Running\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">", fp);
+	   fputs("<gpx creator=\"StravaGPX\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd\" xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v1\" xmlns:gpxx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\">", fp);
 	   fputs("<trk>", fp);
 	}
 
@@ -85,6 +85,6 @@ void encode_fit(double latitude, double longitude, double altitude, int heart_ra
 	if (heart_rate > 0) {
 		fprintf(fp, "<extensions><gpxtpx:TrackPointExtension><gpxtpx:hr>%d</gpxtpx:hr></gpxtpx:TrackPointExtension></extensions>", heart_rate);
 	}
-	fprintf(fp, "<ele>%0.2f</ele><hr>%d</hr><time>%s</time></trkpt>", altitude, heart_rate, buf);
+	fprintf(fp, "<ele>%0.2f</ele><time>%s</time></trkpt>", altitude, buf);
 
 }
