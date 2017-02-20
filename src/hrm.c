@@ -52,10 +52,10 @@ void hrm_update(){
 }
 
 static void __update_sensor(sensor_h s, sensor_event_s *event, void *data) {
-	dlog_print(DLOG_DEBUG, LOG_TAG, "Heart: %f, %f, %f, %f", event->values[0], event->values[1], event->values[2], event->values[3]);
+	//dlog_print(DLOG_DEBUG, LOG_TAG, "Heart: %f, %f, %f, %f", event->values[0], event->values[1], event->values[2], event->values[3]);
 	if (event->value_count > 0 && event->values[0] > 0.5
 			&& lastHrm >= 0) {
-		dlog_print(DLOG_DEBUG, LOG_TAG, "Heart: %f", event->values[0]);
+		//dlog_print(DLOG_DEBUG, LOG_TAG, "Heart: %f", event->values[0]);
 		int hrm = (int)(event->values[0] + 0.5);
 		if (hrm != lastHrm) {
 			lastHrm = hrm;

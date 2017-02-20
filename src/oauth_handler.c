@@ -81,18 +81,17 @@ __send_response(oauth_error_e err)
 	if (err != 0) {
 		dlog_print(DLOG_ERROR, LOG_TAG, "Oauth err: %d", err);
 		if (err == OAUTH_ERROR_USER_CANCELED) {
-			elm_object_text_set(vc->bottomLabel,"Login");
+			elm_object_text_set(vc->v6,"Login");
 		} else {
-			elm_object_text_set(vc->bottomLabel,"Error");
+			elm_object_text_set(vc->v6,"Error");
 		}
 	} else {
-		elm_object_text_set(vc->bottomLabel,"Logout");
+		elm_object_text_set(vc->v6,"Logout");
 		dlog_print(DLOG_DEBUG, LOG_TAG, "Storing oauth token: %s", token);
 
 		char file[255];
-		char* directory = app_get_data_path();
+		char* directory = get_directory();
 		strcpy(file, directory);
-		free(directory);
 		strcat(file, OAUTH_FILE);
 
 		dlog_print(DLOG_DEBUG, LOG_TAG, "Storing oauth file: %s", file);
@@ -328,9 +327,8 @@ void oauth_login()
 		deauthorize();
 
 		char file[255];
-		char* directory = app_get_data_path();
+		char* directory = get_directory();
 		strcpy(file, directory);
-		free(directory);
 		strcat(file, OAUTH_FILE);
 
 		FILE* fp = fopen(file, "w");
@@ -370,9 +368,8 @@ char* oauth_access_token() {
 void oauth_init() {
 
 	char file[255];
-	char* directory = app_get_data_path();
+	char* directory = get_directory();
 	strcpy(file, directory);
-	free(directory);
 	strcat(file, OAUTH_FILE);
 
 	FILE* fp = fopen(file, "r");

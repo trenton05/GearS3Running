@@ -45,7 +45,7 @@ WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
 }
 
 
-bool upload_fit(const char* file, const char* token) {
+bool upload_fit(const char* file, const char* token, const char* name, bool pace) {
 		dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading %s", file);
 	  CURL *curl;
 
@@ -70,11 +70,18 @@ bool upload_fit(const char* file, const char* token) {
 	               CURLFORM_FILE, file,
 	               CURLFORM_END);
 
-	  /* Fill in the filename field */
+	  if (name) {
+		  curl_formadd(&formpost,
+					   &lastptr,
+					   CURLFORM_COPYNAME, "name",
+					   CURLFORM_COPYCONTENTS, name,
+					   CURLFORM_END);
+	  }
+
 	  curl_formadd(&formpost,
 	               &lastptr,
 	               CURLFORM_COPYNAME, "activity_type",
-	               CURLFORM_COPYCONTENTS, "run",
+	               CURLFORM_COPYCONTENTS, pace ? "run" : "ride",
 	               CURLFORM_END);
 
 	  /* Fill in the submit field too, even if this is rarely needed */

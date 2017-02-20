@@ -4,7 +4,6 @@
 ********************************************************************************/
 
 #include "app_main.h"
-#include "gps.h"
 #include "oauth_handler.h"
 #include "uib_views.h"
 #include "uib_views_inc.h"
@@ -19,13 +18,33 @@ void view1_exitButton_onclicked(uib_view1_view_context *vc, Evas_Object *obj, vo
 }
 
 void view1_topLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-	gps_toggle_running();
+	top_toggle();
 }
 
 void view1_bottomLabel_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-	oauth_login();
+	bottom_toggle();
 }
 
-void view1_label_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
-	gps_toggle_label();
+void view1_label1_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	l1_toggle();
+}
+
+void view1_label2_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	l2_toggle();
+}
+
+void view1_label3_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	l3_toggle();
+}
+
+void view1_label4_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	l4_toggle();
+}
+
+void view1_label5_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	l5_toggle();
+}
+
+void view1_label6_onclicked(uib_view1_view_context *vc, Evas_Object *obj, void *event_info) {
+	l6_toggle();
 }

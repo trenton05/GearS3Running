@@ -55,5 +55,18 @@ int uib_app_run(app_data *app, int argc, char **argv);
 
 void app_get_resource(const char *edj_file_in, char *edj_path_out, int edj_path_max);
 
+void top_toggle();
+void bottom_toggle();
+void l1_toggle();
+void l2_toggle();
+void l3_toggle();
+void l4_toggle();
+void l5_toggle();
+void l6_toggle();
+
+void update_settings();
+
+char* get_directory();
+
 #endif /* __APP_MAIN_H__ */
 

@@ -66,8 +66,14 @@ typedef struct _uib_view1_view_context {
 	Evas_Object *circle_object_hrv;
 	Evas_Object *hrl;
 	Evas_Object *circle_object_hrl;
-	Evas_Object *exitButton;
-	Evas_Object *circle_object_exitButton;
+	Evas_Object *btl;
+	Evas_Object *circle_object_btl;
+	Evas_Object *btv;
+	Evas_Object *circle_object_btv;
+	Evas_Object *erv;
+	Evas_Object *circle_object_erv;
+	Evas_Object *erl;
+	Evas_Object *circle_object_erl;
 } uib_view1_view_context;
 
 

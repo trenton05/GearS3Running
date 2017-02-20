@@ -11,14 +11,19 @@
 
 /* event handler declarations */
 void view1_topLabel_onclicked(uib_view1_view_context*, Evas_Object*, void*);
-void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
-void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
-void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label1_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label2_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label3_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label4_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label5_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label6_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 void view1_bottomLabel_onclicked(uib_view1_view_context*, Evas_Object*, void*);
-void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
-void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
-void view1_label_onclicked(uib_view1_view_context*, Evas_Object*, void*);
-void view1_exitButton_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label1_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label2_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label3_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label4_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label5_onclicked(uib_view1_view_context*, Evas_Object*, void*);
+void view1_label6_onclicked(uib_view1_view_context*, Evas_Object*, void*);
 
 uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callback_param) {
 	uib_view1_view_context* vc = calloc(1, sizeof(uib_view1_view_context));
@@ -35,14 +40,19 @@ uib_view_context* uib_view_view1_create(Evas_Object* parent, void* create_callba
 
 	//bind event handler
 	evas_object_smart_callback_add(vc->topLabel, "clicked", (Evas_Smart_Cb)view1_topLabel_onclicked, vc);
-	evas_object_smart_callback_add(vc->l1, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
-	evas_object_smart_callback_add(vc->l2, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
-	evas_object_smart_callback_add(vc->l3, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
+	evas_object_smart_callback_add(vc->l1, "clicked", (Evas_Smart_Cb)view1_label1_onclicked, vc);
+	evas_object_smart_callback_add(vc->l2, "clicked", (Evas_Smart_Cb)view1_label2_onclicked, vc);
+	evas_object_smart_callback_add(vc->l3, "clicked", (Evas_Smart_Cb)view1_label3_onclicked, vc);
+	evas_object_smart_callback_add(vc->l4, "clicked", (Evas_Smart_Cb)view1_label4_onclicked, vc);
+	evas_object_smart_callback_add(vc->l5, "clicked", (Evas_Smart_Cb)view1_label5_onclicked, vc);
+	evas_object_smart_callback_add(vc->l6, "clicked", (Evas_Smart_Cb)view1_label6_onclicked, vc);
 	evas_object_smart_callback_add(vc->bottomLabel, "clicked", (Evas_Smart_Cb)view1_bottomLabel_onclicked, vc);
-	evas_object_smart_callback_add(vc->v1, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
-	evas_object_smart_callback_add(vc->v2, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
-	evas_object_smart_callback_add(vc->v3, "clicked", (Evas_Smart_Cb)view1_label_onclicked, vc);
-	evas_object_smart_callback_add(vc->exitButton, "clicked", (Evas_Smart_Cb)view1_exitButton_onclicked, vc);
+	evas_object_smart_callback_add(vc->v1, "clicked", (Evas_Smart_Cb)view1_label1_onclicked, vc);
+	evas_object_smart_callback_add(vc->v2, "clicked", (Evas_Smart_Cb)view1_label2_onclicked, vc);
+	evas_object_smart_callback_add(vc->v3, "clicked", (Evas_Smart_Cb)view1_label3_onclicked, vc);
+	evas_object_smart_callback_add(vc->v4, "clicked", (Evas_Smart_Cb)view1_label4_onclicked, vc);
+	evas_object_smart_callback_add(vc->v5, "clicked", (Evas_Smart_Cb)view1_label5_onclicked, vc);
+	evas_object_smart_callback_add(vc->v6, "clicked", (Evas_Smart_Cb)view1_label6_onclicked, vc);
 
 
 	evas_object_data_set(vc->root_container, KEY_VIEW_CONTEXT, vc);
@@ -205,15 +215,45 @@ void uib_view1_config_CIRCLE_360x360_portrait() {
 			elm_label_ellipsis_set(vc->hrl, EINA_FALSE);
 			evas_object_show(vc->hrl);
 		}
-		if (!vc->exitButton) {
-			vc->exitButton = elm_button_add(vc->grid1);
+		if (!vc->btl) {
+			vc->btl = elm_label_add(vc->grid1);
 		}
-		if (vc->exitButton) {
-			evas_object_size_hint_align_set(vc->exitButton, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->exitButton, 1.0, 1.0);			elm_object_text_set(vc->exitButton,_UIB_LOCALE("X"));
-			elm_object_style_set(vc->exitButton,"default");
-			evas_object_show(vc->exitButton);
+		if(vc->btl) {
+			evas_object_size_hint_align_set(vc->btl, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->btl, 1.0, 1.0);			elm_object_text_set(vc->btl,_UIB_LOCALE("bat"));
+			elm_label_line_wrap_set(vc->btl, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->btl,0);
+			elm_label_ellipsis_set(vc->btl, EINA_FALSE);
+			evas_object_show(vc->btl);
 		}
-		elm_grid_pack(vc->grid1, vc->topLabel, 337, 34, 356, 103);		elm_grid_pack(vc->grid1, vc->l1, 197, 133, 252, 112);		elm_grid_pack(vc->grid1, vc->l2, 197, 264, 252, 114);		elm_grid_pack(vc->grid1, vc->l3, 197, 398, 252, 114);		elm_grid_pack(vc->grid1, vc->l4, 197, 508, 252, 114);		elm_grid_pack(vc->grid1, vc->l5, 197, 639, 252, 114);		elm_grid_pack(vc->grid1, vc->l6, 197, 750, 252, 114);		elm_grid_pack(vc->grid1, vc->bottomLabel, 337, 866, 356, 103);		elm_grid_pack(vc->grid1, vc->v1, 441, 156, 397, 111);		elm_grid_pack(vc->grid1, vc->v2, 441, 264, 397, 111);		elm_grid_pack(vc->grid1, vc->v3, 441, 397, 397, 111);		elm_grid_pack(vc->grid1, vc->v4, 441, 506, 397, 111);		elm_grid_pack(vc->grid1, vc->v5, 441, 639, 397, 111);		elm_grid_pack(vc->grid1, vc->v6, 441, 750, 397, 111);		elm_grid_pack(vc->grid1, vc->hrv, 20, 506, 176, 111);		elm_grid_pack(vc->grid1, vc->hrl, 20, 397, 176, 111);		elm_grid_pack(vc->grid1, vc->exitButton, 864, 372, 150, 250);		evas_object_show(vc->grid1);
+		if (!vc->btv) {
+			vc->btv = elm_label_add(vc->grid1);
+		}
+		if(vc->btv) {
+			evas_object_size_hint_align_set(vc->btv, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->btv, 1.0, 1.0);			elm_label_line_wrap_set(vc->btv, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->btv,0);
+			elm_label_ellipsis_set(vc->btv, EINA_FALSE);
+			evas_object_show(vc->btv);
+		}
+		if (!vc->erv) {
+			vc->erv = elm_label_add(vc->grid1);
+		}
+		if(vc->erv) {
+			evas_object_size_hint_align_set(vc->erv, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->erv, 1.0, 1.0);			elm_label_line_wrap_set(vc->erv, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->erv,0);
+			elm_label_ellipsis_set(vc->erv, EINA_FALSE);
+			evas_object_show(vc->erv);
+		}
+		if (!vc->erl) {
+			vc->erl = elm_label_add(vc->grid1);
+		}
+		if(vc->erl) {
+			evas_object_size_hint_align_set(vc->erl, -1.0, -1.0);			evas_object_size_hint_weight_set(vc->erl, 1.0, 1.0);			elm_object_text_set(vc->erl,_UIB_LOCALE("err"));
+			elm_label_line_wrap_set(vc->erl, (Elm_Wrap_Type)ELM_WRAP_NONE);
+			elm_label_wrap_width_set(vc->erl,0);
+			elm_label_ellipsis_set(vc->erl, EINA_FALSE);
+			evas_object_show(vc->erl);
+		}
+		elm_grid_pack(vc->grid1, vc->topLabel, 337, 34, 356, 120);		elm_grid_pack(vc->grid1, vc->l1, 197, 154, 252, 120);		elm_grid_pack(vc->grid1, vc->l2, 197, 274, 252, 120);		elm_grid_pack(vc->grid1, vc->l3, 197, 394, 252, 120);		elm_grid_pack(vc->grid1, vc->l4, 197, 514, 252, 120);		elm_grid_pack(vc->grid1, vc->l5, 197, 634, 252, 120);		elm_grid_pack(vc->grid1, vc->l6, 197, 754, 252, 120);		elm_grid_pack(vc->grid1, vc->bottomLabel, 337, 874, 356, 120);		elm_grid_pack(vc->grid1, vc->v1, 441, 154, 397, 120);		elm_grid_pack(vc->grid1, vc->v2, 441, 274, 397, 120);		elm_grid_pack(vc->grid1, vc->v3, 441, 394, 397, 120);		elm_grid_pack(vc->grid1, vc->v4, 441, 514, 397, 120);		elm_grid_pack(vc->grid1, vc->v5, 441, 634, 397, 120);		elm_grid_pack(vc->grid1, vc->v6, 441, 754, 397, 120);		elm_grid_pack(vc->grid1, vc->hrv, 20, 394, 176, 120);		elm_grid_pack(vc->grid1, vc->hrl, 20, 514, 176, 120);		elm_grid_pack(vc->grid1, vc->btl, 840, 274, 150, 120);		elm_grid_pack(vc->grid1, vc->btv, 840, 394, 150, 120);		elm_grid_pack(vc->grid1, vc->erv, 840, 514, 150, 120);		elm_grid_pack(vc->grid1, vc->erl, 840, 634, 150, 120);		evas_object_show(vc->grid1);
 	}
 }
 

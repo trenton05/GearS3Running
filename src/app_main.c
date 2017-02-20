@@ -6,10 +6,15 @@
 #include "oauth_handler.h"
 #include "encode.h"
 #include "upload.h"
+#include "speech.h"
+#include "voice.h"
+
 #include <dirent.h>
 #include <device/power.h>
+#include <device/battery.h>
 #include <device/display.h>
 #include <device/callback.h>
+#include <storage.h>
 
 /* app event callbacks */
 static bool _on_create_cb(void *user_data);
@@ -22,6 +27,21 @@ static void _on_low_battery_cb(app_event_info_h event_info, void *user_data);
 static void _on_device_orientation_cb(app_event_info_h event_info, void *user_data);
 static void _on_language_changed_cb(app_event_info_h event_info, void *user_data);
 static void _on_region_format_changed_cb(app_event_info_h event_info, void *user_data);
+static bool started = false;
+static int storage_id = 0;
+static char* directory = NULL;
+
+char* get_directory() {
+	if (!directory) {
+		char* d;
+		storage_get_directory(storage_id, STORAGE_DIRECTORY_OTHERS, &d);
+		directory = malloc(strlen(d) + 2);
+		strcpy(directory, d);
+		strcat(directory, "/");
+		free(d);
+	}
+	return directory;
+}
 
 void
 nf_hw_back_cb(void* param, Evas_Object * evas_obj, void* event_info) {
@@ -53,8 +73,18 @@ void uib_app_destroy(app_data *user_data)
 	free(user_data);
 }
 
+bool storage_cb(int sid, storage_type_e type, storage_state_e state, const char *path, void *user_data) {
+	if (type == STORAGE_TYPE_INTERNAL) {
+		storage_id = sid;
+		return false;
+	}
+	return true;
+}
+
 int uib_app_run(app_data *user_data, int argc, char **argv)
 {
+	storage_foreach_device_supported(storage_cb, NULL);
+
 	ui_app_lifecycle_callback_s cbs =
 	{
 		.create = _on_create_cb,
@@ -99,7 +129,8 @@ void clean_exit() {
 		if (token) {
 			dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading files");
 			DIR* d;
-			char* directory = app_get_data_path();
+			char* directory = get_directory();
+
 			struct dirent* dir;
 			d = opendir(directory);
 
@@ -110,7 +141,8 @@ void clean_exit() {
 						char file[255];
 						strcpy(file, directory);
 						strcat(file, dir->d_name);
-						if (!upload_fit(file, token)) {
+						bool pace = gps_get_pace();
+						if (!upload_fit(file, token, NULL, pace)) {
 							uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 							uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
@@ -127,7 +159,6 @@ void clean_exit() {
 				}
 				closedir(d);
 			}
-			free(directory);
 			if (failed) {
 				return;
 			}
@@ -155,6 +186,31 @@ static void _on_display_changed(device_callback_e type, void *value, void *user_
 	}
 }
 
+static void update_battery() {
+	int percent;
+
+	if (device_battery_get_percent(&percent) == DEVICE_ERROR_NONE) {
+		if (percent >= 100) percent = 99;
+
+		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+		char batText[4];
+		batText[3] = 0;
+		batText[2] = '%';
+		batText[1] = '0' + (percent % 10);
+		batText[0] = percent < 10 ? ' ' : '0' + (percent / 10);
+		elm_object_text_set(vc->btv, batText);
+
+		uib_views_get_instance()->uib_views_current_view_redraw();
+	}
+}
+
+static void _on_battery_changed(device_callback_e type, void *value, void *user_data) {
+	update_battery();
+}
+
+
 static bool _on_create_cb(void *user_data)
 {
 	/*
@@ -166,23 +222,8 @@ static bool _on_create_cb(void *user_data)
 	app_manager->initialize();
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Initializing");
 
-	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
-
-	elm_object_text_set(vc->topLabel,"Start");
-	elm_object_text_set(vc->bottomLabel,"Login");
-
-	elm_object_text_set(vc->v1,"...");
-	elm_object_text_set(vc->v2,"...");
-	elm_object_text_set(vc->v3,"...");
-	elm_object_text_set(vc->v4,"...");
-	elm_object_text_set(vc->v5,"...");
-	elm_object_text_set(vc->v6,"...");
-	elm_object_text_set(vc->hrv,"...");
-
-	uib_views_get_instance()->uib_views_current_view_redraw();
-
 	device_add_callback(DEVICE_CALLBACK_DISPLAY_STATE, _on_display_changed, NULL);
+	device_add_callback(DEVICE_CALLBACK_BATTERY_CAPACITY, _on_battery_changed, NULL);
 
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Loading oauth");
 
@@ -193,9 +234,8 @@ static bool _on_create_cb(void *user_data)
 	time(&t);
 
 	char* file = malloc(128);
-	char* directory = app_get_data_path();
+	char* directory = get_directory();
 	strcpy(file, directory);
-	free(directory);
 
 	sprintf(file + strlen(file), FILE_FORMAT, (int) t);
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Starting fit track in %s", file);
@@ -203,8 +243,13 @@ static bool _on_create_cb(void *user_data)
 
 	dlog_print(DLOG_DEBUG, LOG_TAG, "Starting gps");
 
+	speech_init();
+	voice_init();
 	gps_init();
 	hrm_init();
+
+	update_battery();
+	update_settings();
 	/*
 	 * End of area
 	 */
@@ -218,6 +263,8 @@ static void _on_terminate_cb(void *user_data)
 	device_remove_callback(DEVICE_CALLBACK_DISPLAY_STATE, _on_display_changed);
 	gps_destroy();
 	hrm_destroy();
+	speech_destroy();
+	voice_destroy();
 	uib_views_get_instance()->destroy_window_obj();
 }
 
@@ -263,3 +310,89 @@ static void _on_region_format_changed_cb(app_event_info_h event_info, void *user
 	/* Take necessary actions when region format setting changes. */
 }
 
+void top_toggle() {
+	if (!started) {
+		started = true;
+	}
+
+	gps_toggle_running();
+}
+
+void bottom_toggle() {
+	if (!started || !gps_is_running()) {
+		clean_exit();
+	}
+}
+
+void l1_toggle() {
+	if (started) {
+		return;
+	}
+}
+
+void l2_toggle() {
+	if (started) {
+		return;
+	}
+	gps_set_metric(!gps_get_metric());
+	update_settings();
+}
+
+void l3_toggle() {
+	if (started) {
+		return;
+	}
+	gps_set_pace(!gps_get_pace());
+	update_settings();
+}
+
+void l4_toggle() {
+	if (started) {
+		return;
+	}
+
+	gps_set_haptic(!gps_get_haptic());
+	update_settings();
+}
+
+void l5_toggle() {
+	if (started) {
+		return;
+	}
+	gps_set_speech(!gps_get_speech());
+	update_settings();
+}
+
+void l6_toggle() {
+	if (started) {
+		return;
+	}
+	oauth_login();
+}
+
+void update_settings() {
+	if (started) {
+		return;
+	}
+
+	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+	elm_object_text_set(vc->topLabel,"Start");
+	elm_object_text_set(vc->bottomLabel,"Exit");
+
+	elm_object_text_set(vc->l1,"GPS");
+	elm_object_text_set(vc->v1, gps_has_signal() ? "Found" : "...");
+	elm_object_text_set(vc->l2,"Unit");
+	elm_object_text_set(vc->v2, gps_get_metric() ? "kph,km,m" : "mph,mi,ft");
+	elm_object_text_set(vc->l3,"Targ");
+	elm_object_text_set(vc->v3, gps_get_pace() ? "Pace" : "Speed");
+	elm_object_text_set(vc->l4,"Vibr");
+	elm_object_text_set(vc->v4, gps_get_haptic() ? "Yes" : "No");
+	elm_object_text_set(vc->l5,"Voic");
+	elm_object_text_set(vc->v5, gps_get_speech() ? "Yes" : "No");
+	elm_object_text_set(vc->l6,"Strv");
+	elm_object_text_set(vc->v6, oauth_access_token() ? "Logout" : "Login");
+
+	uib_views_get_instance()->uib_views_current_view_redraw();
+}
