@@ -18,8 +18,11 @@ bool gps_get_haptic();
 
 void gps_set_haptic(bool val);
 
-bool gps_get_speech();
+int gps_get_speech();
 
-void gps_set_speech(bool val);
+void gps_set_speech(int val);
+
+void gps_update_speech();
+
 #endif /* __GPS_H__ */
 

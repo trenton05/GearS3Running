@@ -83,9 +83,9 @@ static double lastAlt = 0.0;
 
 static bool metric = true;
 static bool pace = true;
-static bool speech = true;
 static bool haptic = true;
 static haptic_device_h haptic_h;
+static int speech_every = 5;
 
 bool gps_has_signal() {
 	return lastErr >= 0.0;
@@ -115,12 +115,12 @@ void gps_set_haptic(bool val) {
 	haptic = val;
 }
 
-bool gps_get_speech() {
-	return speech;
+int gps_get_speech() {
+	return speech_every;
 }
 
-void gps_set_speech(bool val) {
-	speech = val;
+void gps_set_speech(int val) {
+	speech_every = val;
 }
 
 static location_summary* init_summary() {
@@ -547,7 +547,7 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 	return distf;
 }
 
-void update_speech() {
+void gps_update_speech() {
 	char buf[255];
 
 	sprintf(buf, "distance ");
@@ -605,8 +605,8 @@ static void update_increment() {
 		gps_update();
 
 		if (newTotal != lastTotal) {
-			if (newTotal / 5 != lastTotal / 5 && speech) {
-				update_speech();
+			if (speech_every > 0 && newTotal / speech_every != lastTotal / speech_every) {
+				gps_update_speech();
 			} else if (haptic && haptic_h) {
 				dlog_print(DLOG_DEBUG, LOG_TAG, "Doing haptic");
 
@@ -623,7 +623,19 @@ static void update_increment() {
 }
 
 static void __satellite_updated_cb(int num_of_active, int num_of_inview, time_t timestamp, void *user_data) {
-	dlog_print(DLOG_DEBUG, LOG_TAG, "Satellite: %d, %d", num_of_active, num_of_inview);
+	// dlog_print(DLOG_DEBUG, LOG_TAG, "Satellite: %d, %d", num_of_active, num_of_inview);
+	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+	if (num_of_inview > 99) num_of_inview = 99;
+
+	char buf[3];
+	buf[2] = 0;
+	buf[1] = '0' + (num_of_inview % 10);
+	buf[0] = num_of_inview < 10 ? ' ' : '0' + (num_of_inview / 10);
+	elm_object_text_set(vc->satv, buf);
+
+	uib_views_get_instance()->uib_views_current_view_redraw();
 }
 
 static void
@@ -641,7 +653,7 @@ __position_updated_cb(double latitude, double longitude, double altitude, time_t
 	
 	//encode_fit_raw(latitude, longitude, altitude, (int) hor, time);
 		
-	dlog_print(DLOG_DEBUG, LOG_TAG, "Location: %f, %f, %f, %f, %f", latitude, longitude, altitude, hor, vert);
+	//dlog_print(DLOG_DEBUG, LOG_TAG, "Location: %f, %f, %f, %f, %f", latitude, longitude, altitude, hor, vert);
 	if (lastLoc != NULL &&
 			lastLoc->latitude == latitude &&
 			lastLoc->longitude == longitude &&

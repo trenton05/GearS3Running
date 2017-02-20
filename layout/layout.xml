@@ -58,62 +58,70 @@
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="441" pack_y="154" id="v1"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="154" id="v1"
 					text="">
 					<event function_name="view1_label1_onclicked" signal="clicked" />
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="441" pack_y="274" id="v2"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="274" id="v2"
 					text="">
 					<event function_name="view1_label2_onclicked" signal="clicked" />
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="441" pack_y="394" id="v3"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="394" id="v3"
 					text="">
 					<event function_name="view1_label3_onclicked" signal="clicked" />
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="441" pack_y="514" id="v4"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="514" id="v4"
 					text="">
 					<event function_name="view1_label4_onclicked" signal="clicked" />
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="441" pack_y="634" id="v5"
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="634" id="v5"
 					text="">
 					<event function_name="view1_label5_onclicked" signal="clicked" />
 				</label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="397" pack_x="441" pack_y="754" id="v6" text="">
+					wrap_width="0" pack_w="397" pack_x="431" pack_y="754" id="v6" text="">
 					<event function_name="view1_label6_onclicked" signal="clicked" />
 				</label>
+				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
+					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
+					wrap_width="0" pack_w="136" pack_x="60" pack_y="274" id="hrl"
+					text="hr"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
 					wrap_width="0" pack_w="176" pack_x="20" pack_y="394" id="hrv"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="176" pack_x="20" pack_y="514" id="hrl"
-					text="HR"></label>
+					wrap_width="0" pack_w="176" pack_x="20" pack_y="514" id="satv"
+					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="150" pack_x="840" pack_y="274" id="btl"
+					wrap_width="0" pack_w="176" pack_x="20" pack_y="634" id="satl"
+					text=""></label>
+				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
+					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
+					wrap_width="0" pack_w="170" pack_x="820" pack_y="274" id="btl"
 					text="bat"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="150" pack_x="840" pack_y="394" id="btv"
+					wrap_width="0" pack_w="170" pack_x="820" pack_y="394" id="btv"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="150" pack_x="840" pack_y="514" id="erv"
+					wrap_width="0" pack_w="170" pack_x="820" pack_y="514" id="erv"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="150" pack_x="840" pack_y="634" id="erl"
+					wrap_width="0" pack_w="170" pack_x="820" pack_y="634" id="erl"
 					text="err"></label>
 			</grid>
 		</view>

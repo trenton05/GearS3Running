@@ -9,6 +9,7 @@
 #include "speech.h"
 #include "voice.h"
 
+#include <Ecore.h>
 #include <dirent.h>
 #include <device/power.h>
 #include <device/battery.h>
@@ -125,62 +126,74 @@ app_get_resource(const char *res_file_in, char *res_path_out, int res_path_max)
 	}
 }
 
+static bool upload_failed = false;
+static void _upload_files(void* user_data, Ecore_Thread *thread) {
+
+	char* token = oauth_access_token();
+
+	if (token) {
+
+		dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading files");
+		DIR* d;
+		char* directory = get_directory();
+
+		struct dirent* dir;
+		d = opendir(directory);
+
+		if (d) {
+			while ((dir = readdir(d)) != NULL) {
+				if (strncmp(dir->d_name, FILE_PREFIX, strlen(FILE_PREFIX)) == 0) {
+					char file[255];
+					strcpy(file, directory);
+					strcat(file, dir->d_name);
+					bool pace = gps_get_pace();
+					if (!upload_fit(file, token, NULL, pace)) {
+						uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+						uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+						elm_object_text_set(vc->bottomLabel,"Failed");
+
+						uib_views_get_instance()->uib_views_current_view_redraw();
+						upload_failed = true;
+						break;
+					} else {
+						remove(file);
+					}
+
+				}
+			}
+			closedir(d);
+		}
+	}
+}
+
+static void thread_exit(void *user_data, Ecore_Thread *thread) {
+	if (upload_failed) {
+		upload_failed = false;
+	} else {
+		ui_app_exit();
+	}
+}
+
 static bool exiting = false;
 void clean_exit() {
 	if (!exiting) {
 		exiting = true;
 		stop_fit();
 
-		char* token = oauth_access_token();
+		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-		if (token) {
-			uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-			uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+		elm_object_text_set(vc->bottomLabel,"Uploading");
 
-			elm_object_text_set(vc->bottomLabel,"Uploading");
+		uib_views_get_instance()->uib_views_current_view_redraw();
 
-			uib_views_get_instance()->uib_views_current_view_redraw();
-
-			dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading files");
-			DIR* d;
-			char* directory = get_directory();
-
-			struct dirent* dir;
-			d = opendir(directory);
-
-			bool failed = false;
-			if (d) {
-				while ((dir = readdir(d)) != NULL) {
-					if (strncmp(dir->d_name, FILE_PREFIX, strlen(FILE_PREFIX)) == 0) {
-						char file[255];
-						strcpy(file, directory);
-						strcat(file, dir->d_name);
-						bool pace = gps_get_pace();
-						if (!upload_fit(file, token, NULL, pace)) {
-							uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-							uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
-
-							elm_object_text_set(vc->bottomLabel,"Failed");
-
-							uib_views_get_instance()->uib_views_current_view_redraw();
-							failed = true;
-							break;
-						} else {
-							remove(file);
-						}
-
-					}
-				}
-				closedir(d);
-			}
-			if (failed) {
-				return;
-			}
-		}
+		ecore_thread_run(_upload_files, thread_exit, thread_exit, NULL);
+	} else {
+		thread_exit(NULL, NULL);
 	}
-
-	ui_app_exit();
 }
+
 
 static void _on_display_changed(device_callback_e type, void *value, void *user_data) {
 	display_state_e state;
@@ -340,12 +353,14 @@ void bottom_toggle() {
 
 void l1_toggle() {
 	if (started) {
+		gps_update_speech();
 		return;
 	}
 }
 
 void l2_toggle() {
 	if (started) {
+		gps_update_speech();
 		return;
 	}
 	gps_set_metric(!gps_get_metric());
@@ -354,6 +369,7 @@ void l2_toggle() {
 
 void l3_toggle() {
 	if (started) {
+		gps_update_speech();
 		return;
 	}
 	gps_set_pace(!gps_get_pace());
@@ -362,6 +378,7 @@ void l3_toggle() {
 
 void l4_toggle() {
 	if (started) {
+		gps_update_speech();
 		return;
 	}
 
@@ -371,14 +388,31 @@ void l4_toggle() {
 
 void l5_toggle() {
 	if (started) {
+		gps_update_speech();
 		return;
 	}
-	gps_set_speech(!gps_get_speech());
+	int current = gps_get_speech();
+	switch (current) {
+	case 0:
+		current = 5;
+		break;
+	case 5:
+		current = 10;
+		break;
+	case 10:
+		current = 20;
+		break;
+	case 20:
+		current = 0;
+		break;
+	}
+	gps_set_speech(current);
 	update_settings();
 }
 
 void l6_toggle() {
 	if (started) {
+		gps_update_speech();
 		return;
 	}
 	oauth_login();
@@ -395,17 +429,26 @@ void update_settings() {
 	elm_object_text_set(vc->topLabel,"Start");
 	elm_object_text_set(vc->bottomLabel,"Exit");
 
+	bool metric = gps_get_metric();
 	elm_object_text_set(vc->l1,"GPS");
 	elm_object_text_set(vc->v1, gps_has_signal() ? "Found" : "...");
-	elm_object_text_set(vc->l2,"Unit");
-	elm_object_text_set(vc->v2, gps_get_metric() ? "kph,km,m" : "mph,mi,ft");
-	elm_object_text_set(vc->l3,"Targ");
+	elm_object_text_set(vc->l2,"Units");
+	elm_object_text_set(vc->v2, metric ? "kph,km,m" : "mph,mi,ft");
+	elm_object_text_set(vc->l3,"Type");
 	elm_object_text_set(vc->v3, gps_get_pace() ? "Pace" : "Speed");
 	elm_object_text_set(vc->l4,"Vibr");
 	elm_object_text_set(vc->v4, gps_get_haptic() ? "Yes" : "No");
-	elm_object_text_set(vc->l5,"Voic");
-	elm_object_text_set(vc->v5, gps_get_speech() ? "Yes" : "No");
-	elm_object_text_set(vc->l6,"Strv");
+	elm_object_text_set(vc->l5,"Voice");
+
+	int speech = gps_get_speech();
+	elm_object_text_set(vc->v5,
+		speech == 0 ? "No" :
+				metric ?
+						speech == 5 ? "0.5 km" : speech == 10 ? "1.0 km" : speech == 20 ? "2.0 km" : ""
+					:
+						speech == 5 ? "0.5 mi" : speech == 10 ? "1.0 mi" : speech == 20 ? "2.0 mi" : ""
+	);
+	elm_object_text_set(vc->l6,"Strav");
 	elm_object_text_set(vc->v6, oauth_access_token() ? "Logout" : "Login");
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
