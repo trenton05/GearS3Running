@@ -134,6 +134,13 @@ void clean_exit() {
 		char* token = oauth_access_token();
 
 		if (token) {
+			uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+			uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+			elm_object_text_set(vc->bottomLabel,"Uploading");
+
+			uib_views_get_instance()->uib_views_current_view_redraw();
+
 			dlog_print(DLOG_DEBUG, LOG_TAG, "Uploading files");
 			DIR* d;
 			char* directory = get_directory();

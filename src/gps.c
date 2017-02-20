@@ -15,7 +15,7 @@
 #include <device/haptic.h>
 
 #define HAPTIC_DURATION 500
-#define HAPTIC_FEEDBACK 50
+#define HAPTIC_FEEDBACK 100
 
 #define INTEGRAL_DIVISIONS 4
 #define POSITION_UPDATE_INTERVAL 1
@@ -605,7 +605,7 @@ static void update_increment() {
 		gps_update();
 
 		if (newTotal != lastTotal) {
-			if (newTotal / 10 != lastTotal / 10 && speech) {
+			if (newTotal / 5 != lastTotal / 5 && speech) {
 				update_speech();
 			} else if (haptic && haptic_h) {
 				dlog_print(DLOG_DEBUG, LOG_TAG, "Doing haptic");
