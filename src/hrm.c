@@ -44,9 +44,13 @@ void hrm_update(){
 	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
 
-	get_hb(hrmText, lastHrm);
+	if (lastHrm <= 0) {
+		elm_object_text_set(vc->hrv, "?");
+	} else {
+		get_hb(hrmText, lastHrm);
+		elm_object_text_set(vc->hrv, hrmText);
+	}
 
-	elm_object_text_set(vc->hrv,hrmText);
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
 }
@@ -59,9 +63,9 @@ static void __update_sensor(sensor_h s, sensor_event_s *event, void *data) {
 		int hrm = (int)(event->values[0] + 0.5);
 		if (hrm != lastHrm) {
 			lastHrm = hrm;
-			hrm_update();
 		}
 	}
+	hrm_update();
 }
 
 void __update_sensor_accuracy(sensor_h sensor, unsigned long long timestamp, sensor_data_accuracy_e accuracy, void *data) {
@@ -70,6 +74,7 @@ void __update_sensor_accuracy(sensor_h sensor, unsigned long long timestamp, sen
 	} else {
 		lastHrm = 0;
 	}
+	hrm_update();
 }
 
 bool hrm_init(){

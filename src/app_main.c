@@ -34,7 +34,7 @@ static char* directory = NULL;
 char* get_directory() {
 	if (!directory) {
 		char* d;
-		storage_get_directory(storage_id, STORAGE_DIRECTORY_OTHERS, &d);
+		storage_get_directory(storage_id, STORAGE_DIRECTORY_DOCUMENTS, &d);
 		directory = malloc(strlen(d) + 2);
 		strcpy(directory, d);
 		strcat(directory, "/");
@@ -46,8 +46,15 @@ char* get_directory() {
 void
 nf_hw_back_cb(void* param, Evas_Object * evas_obj, void* event_info) {
 	//TODO : user define code
-	evas_obj = uib_views_get_instance()->get_window_obj()->app_naviframe;
-	elm_naviframe_item_pop(evas_obj);
+
+	if (!started || !gps_is_running()) {
+		clean_exit();
+	} else {
+		gps_toggle_running();
+	}
+
+	//evas_obj = uib_views_get_instance()->get_window_obj()->app_naviframe;
+	//elm_naviframe_item_pop(evas_obj);
 }
 
 void
