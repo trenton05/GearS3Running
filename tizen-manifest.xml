@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="org.example.Running" version="1.0.0">
+<manifest xmlns="http://tizen.org/ns/packages" api-version="2.3.2" package="org.tralbrecht.GearS3Running" version="1.0.0">
     <profile name="wearable"/>
-    <ui-application appid="org.example.Running" exec="runner" multiple="false" nodisplay="false" taskmanage="true" type="capp">
-        <label>Running</label>
-        <icon>runner.png</icon>
+    <ui-application appid="org.tralbrecht.GearS3Running" exec="gears3running" multiple="false" nodisplay="false" taskmanage="true" type="capp">
+        <label>Gear S3 Running</label>
+        <icon>icon.png</icon>
     </ui-application>
     <privileges>
         <privilege>http://tizen.org/privilege/mediastorage</privilege>
