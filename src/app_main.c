@@ -195,7 +195,7 @@ void clean_exit() {
 	if (!exiting && oauth_access_token()) {
 		exiting = true;
 		bool written = stop_fit();
-		if (written || !written) {
+		if (written) {
 			uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 			uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
