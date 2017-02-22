@@ -5,7 +5,7 @@
 
 bool speech_init();
 void speech_destroy();
-void speech_text(char* text);
+bool speech_text(char* text);
 
 #endif /* __SPEECH_H__ */
 

@@ -49,22 +49,25 @@ bool speech_init() {
 
 void speech_destroy() {
 	tts_stop(tts);
+	tts_unprepare(tts);
 	tts_destroy(tts);
 }
 
-void speech_text(char* text) {
+bool speech_text(char* text) {
 	if (state == TTS_STATE_READY || state == TTS_STATE_PAUSED || state == TTS_STATE_PLAYING) {
 		dlog_print(DLOG_DEBUG, LOG_TAG, "Playing text: %s", text);
 		int utt_id;
 		if (0 != tts_add_text(tts, text, language, voice_type, TTS_SPEED_AUTO, &utt_id)) {
 			dlog_print(DLOG_ERROR, LOG_TAG, "Failed to add to tts queue");
-			return;
+			return false;
 		}
 		if (state != TTS_STATE_PLAYING && 0 != tts_play(tts)) {
 			dlog_print(DLOG_ERROR, LOG_TAG, "Failed to play tts");
-			return;
+			return false;
 		}
+		return true;
 	} else {
 		dlog_print(DLOG_WARN, LOG_TAG, "Not playing tts because state is not ready");
+		return false;
 	}
 }

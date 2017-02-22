@@ -14,9 +14,9 @@ bool gps_get_pace();
 void gps_set_pace(bool val);
 bool gps_has_signal();
 
-bool gps_get_haptic();
+int gps_get_haptic();
 
-void gps_set_haptic(bool val);
+void gps_set_haptic(int val);
 
 int gps_get_speech();
 

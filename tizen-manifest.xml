@@ -15,13 +15,15 @@
         <privilege>http://tizen.org/privilege/internet</privilege>
         <privilege>http://tizen.org/privilege/display</privilege>
         <privilege>http://tizen.org/privilege/power</privilege>
+        <privilege>http://tizen.org/privilege/recorder</privilege>
     </privileges>
+    <feature name="http://tizen.org/feature/speech.recognition">true</feature>
+    <feature name="http://tizen.org/feature/speech.synthesis">true</feature>
     <feature name="http://tizen.org/feature/network.internet">true</feature>
     <feature name="http://tizen.org/feature/location.gps">true</feature>
-    <feature name="http://tizen.org/feature/location.wps">true</feature>
+    <feature name="http://tizen.org/feature/sensor.barometer">true</feature>
     <feature name="http://tizen.org/feature/screen.shape.circle">true</feature>
     <feature name="http://tizen.org/feature/sensor.heart_rate_monitor">true</feature>
     <feature name="http://tizen.org/feature/screen.size.normal.360.360">true</feature>
     <feature name="http://tizen.org/feature/location">true</feature>
-    <feature name="http://tizen.org/feature/location.batch">true</feature>
 </manifest>

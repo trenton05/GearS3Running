@@ -4,19 +4,19 @@
 <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"></SignatureMethod>
 <Reference URI="author-signature.xml">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>sjEqWp/n52Q2i75+Q2TPOdv8SHKjc7sz96cUecqVcb8=</DigestValue>
+<DigestValue>qTB7zh9gKFbLDrZXWEkKsb+6V5TFSVgm+LHfLuLCyus=</DigestValue>
 </Reference>
 <Reference URI="bin%2Fgears3running">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>k1eDtUt5q3OGPfbExjOmF8r3jQGNHUfBqJLwi2E+fYk=</DigestValue>
+<DigestValue>y5rJtnIUS3LRexb7MIB6bd3T4MzA0sTb3/zAp0RIXrE=</DigestValue>
 </Reference>
 <Reference URI="shared%2Fres%2Ficon.png">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>E+jnOamvkIODFBK9mo4m1FROWph4zNdmMbsMglA/HvI=</DigestValue>
+<DigestValue>kseV+BcU323W4X5/s69Ijbl82Bg2OFTZruWBYfHaztk=</DigestValue>
 </Reference>
 <Reference URI="tizen-manifest.xml">
 <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"></DigestMethod>
-<DigestValue>yHdxf6DwHgTGDlqVPHxGULxGp1ADYjDnCvV1QtDXLnM=</DigestValue>
+<DigestValue>M+M8zNXAs41yNWaaNl7CRbhf1FFu+4jxPTIxbPCr8Wk=</DigestValue>
 </Reference>
 <Reference URI="#prop">
 <Transforms>
@@ -27,11 +27,11 @@
 </Reference>
 </SignedInfo>
 <SignatureValue>
-EtfHGU8hhD2V1/ZgYw7NYHZcas1AOG7F9IG/E8s3ck6F4j4q1La4jQFHPU5WLHq5tAw2/Q+XZ1fH
-fYUjXn9cG/zOD1pmryiQSEGZ0v2W/foWwBIHlvoTiqIyXPZXHfQOTGINA6mAjA1jTLWPS8zTDcfp
-6JV+BfG/WbkDDZ2eSqihYvvMlHWfg/yjKyjPBGLaUgOYp4kB+zedKakl91AkeOWmoA0rN9Inc7+L
-8i1jkaYh+CMwGimqXuwXWT+YF7HLbIIBqCoAFmu1FFggIq02N8U98RLk6im7D/BVrD8J5jCV+zwI
-Qm6ZMy9JMIKlwOaOVdnBYx9V6CX2HLVrP/J/9g==
+Ih5q1dQS1AGL+6Shqt82g6iqg645889qtMP/xRdRFwDC2KdEndeG7Si6pCrl7gVS30sjyWixQAPr
+CBJFp7xWhyBxDYBTO/2ogoFVBmeH7GVYLll7iib2eDSgFS1swmZO+PxhIfKi4vojenN+V4TRMT1s
+8UcHiI3xnwS+VvJE3y6CgJvlI+Zu6gx5M/HvQCh28W6Ce+1kOVp9ZuDB00TqMBQ+8BzfOqRG8oXC
+s5G3p2mUMVUQesZK0Epmq0dpTr60H74sWkut6rFmg6PKRA0Kk1ehm46RcIyJyxuePJkP9vAP+OLO
+WOJhoduVLxjoWLSeaiKh+D+LQlsBFfTPyipi1A==
 </SignatureValue>
 <KeyInfo>
 <X509Data>

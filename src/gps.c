@@ -83,7 +83,7 @@ static double lastAlt = 0.0;
 
 static bool metric = true;
 static bool pace = true;
-static bool haptic = true;
+static int haptic_every = 1;
 static haptic_device_h haptic_h;
 static int speech_every = 5;
 
@@ -107,12 +107,12 @@ void gps_set_pace(bool val) {
 	pace = val;
 }
 
-bool gps_get_haptic() {
-	return haptic;
+int gps_get_haptic() {
+	return haptic_every;
 }
 
-void gps_set_haptic(bool val) {
-	haptic = val;
+void gps_set_haptic(int val) {
+	haptic_every = val;
 }
 
 int gps_get_speech() {
@@ -607,7 +607,8 @@ static void update_increment() {
 		if (newTotal != lastTotal) {
 			if (speech_every > 0 && newTotal / speech_every != lastTotal / speech_every) {
 				gps_update_speech();
-			} else if (haptic && haptic_h) {
+			}
+			if (haptic_every > 0 && newTotal / haptic_every != lastTotal / haptic_every && haptic_h) {
 				dlog_print(DLOG_DEBUG, LOG_TAG, "Doing haptic");
 
 				haptic_effect_h effect;

@@ -127,6 +127,7 @@ app_get_resource(const char *res_file_in, char *res_path_out, int res_path_max)
 }
 
 static bool upload_failed = false;
+static char* activity_name = NULL;
 static void _upload_files(void* user_data, Ecore_Thread *thread) {
 
 	char* token = oauth_access_token();
@@ -147,7 +148,7 @@ static void _upload_files(void* user_data, Ecore_Thread *thread) {
 					strcpy(file, directory);
 					strcat(file, dir->d_name);
 					bool pace = gps_get_pace();
-					if (!upload_fit(file, token, NULL, pace)) {
+					if (!upload_fit(file, token, activity_name, pace)) {
 						uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 						uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
@@ -175,20 +176,38 @@ static void thread_exit(void *user_data, Ecore_Thread *thread) {
 	}
 }
 
+void _voice_cb(const char* name) {
+	activity_name = strdup(name);
+
+	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+	elm_object_text_set(vc->topLabel, name ? name : "Failed");
+	elm_object_text_set(vc->bottomLabel, "Uploading");
+
+	uib_views_get_instance()->uib_views_current_view_redraw();
+
+	ecore_thread_run(_upload_files, thread_exit, thread_exit, NULL);
+}
+
 static bool exiting = false;
 void clean_exit() {
-	if (!exiting) {
+	if (!exiting && oauth_access_token()) {
 		exiting = true;
-		stop_fit();
+		bool written = stop_fit();
+		if (written || !written) {
+			uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+			uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+			elm_object_text_set(vc->topLabel, "Run Name?");
+			elm_object_text_set(vc->bottomLabel, "Listening");
 
-		elm_object_text_set(vc->bottomLabel,"Uploading");
+			uib_views_get_instance()->uib_views_current_view_redraw();
 
-		uib_views_get_instance()->uib_views_current_view_redraw();
-
-		ecore_thread_run(_upload_files, thread_exit, thread_exit, NULL);
+			voice_listen(_voice_cb);
+		} else {
+			_voice_cb(NULL);
+		}
 	} else {
 		thread_exit(NULL, NULL);
 	}
@@ -202,7 +221,7 @@ static void _on_display_changed(device_callback_e type, void *value, void *user_
 	if (state == DISPLAY_STATE_NORMAL) {
 	    app_control_h app_control = NULL;
 		app_control_create(&app_control);
-		app_control_set_app_id(app_control, "org.example.Running");
+		app_control_set_app_id(app_control, "org.tralbrecht.GearS3Running");
 
 		if(app_control_send_launch_request(app_control, NULL, NULL) == APP_CONTROL_ERROR_NONE)
 		{
@@ -382,7 +401,25 @@ void l4_toggle() {
 		return;
 	}
 
-	gps_set_haptic(!gps_get_haptic());
+	int current = gps_get_haptic();
+	switch (current) {
+	case 0:
+		current = 1;
+		break;
+	case 1:
+		current = 2;
+		break;
+	case 2:
+		current = 5;
+		break;
+	case 5:
+		current = 10;
+		break;
+	case 10:
+		current = 0;
+		break;
+	}
+	gps_set_haptic(current);
 	update_settings();
 }
 
@@ -437,16 +474,22 @@ void update_settings() {
 	elm_object_text_set(vc->l3,"Type");
 	elm_object_text_set(vc->v3, gps_get_pace() ? "Pace" : "Speed");
 	elm_object_text_set(vc->l4,"Vibr");
-	elm_object_text_set(vc->v4, gps_get_haptic() ? "Yes" : "No");
+
+	int haptic = gps_get_haptic();
+	elm_object_text_set(vc->v4, haptic == 0 ? "No" :
+			metric ?
+					haptic == 1 ? "0.1 km" : haptic == 2 ? "0.2 km" : haptic == 5 ? "0.5 km" : haptic == 10 ? "1.0 km" : ""
+				:
+					haptic == 1 ? "0.1 mi" : haptic == 2 ? "0.2 mi" : haptic == 5 ? "0.5 mi" : haptic == 10 ? "1.0 mi" : "");
+
 	elm_object_text_set(vc->l5,"Voice");
 
 	int speech = gps_get_speech();
-	elm_object_text_set(vc->v5,
-		speech == 0 ? "No" :
-				metric ?
-						speech == 5 ? "0.5 km" : speech == 10 ? "1.0 km" : speech == 20 ? "2.0 km" : ""
-					:
-						speech == 5 ? "0.5 mi" : speech == 10 ? "1.0 mi" : speech == 20 ? "2.0 mi" : ""
+	elm_object_text_set(vc->v5, speech == 0 ? "No" :
+			metric ?
+					speech == 5 ? "0.5 km" : speech == 10 ? "1.0 km" : speech == 20 ? "2.0 km" : ""
+				:
+					speech == 5 ? "0.5 mi" : speech == 10 ? "1.0 mi" : speech == 20 ? "2.0 mi" : ""
 	);
 	elm_object_text_set(vc->l6,"Strav");
 	elm_object_text_set(vc->v6, oauth_access_token() ? "Logout" : "Login");

@@ -6,7 +6,7 @@
 bool voice_init();
 void voice_destroy();
 
-typedef void (*voice_cb)(char* text);
+typedef void (*voice_cb)(const char* text);
 void voice_listen(voice_cb cb);
 
 #endif /* __VOICE_H__ */

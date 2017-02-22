@@ -53,7 +53,7 @@ void pause_fit() {
 	}
 }
 
-void stop_fit() {
+bool stop_fit() {
 	pause_fit();
 
 	started = false;
@@ -71,6 +71,8 @@ void stop_fit() {
 
 		fclose(fp_raw);
 	}
+
+	return written || written_raw;
 }
 
 void encode_fit(double latitude, double longitude, double altitude, int heart_rate, double time)
