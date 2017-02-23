@@ -31,6 +31,7 @@ static void _on_region_format_changed_cb(app_event_info_h event_info, void *user
 static bool started = false;
 static int storage_id = 0;
 static char* directory = NULL;
+static Evas_Object *popup = NULL;
 
 char* get_directory() {
 	if (!directory) {
@@ -126,6 +127,30 @@ app_get_resource(const char *res_file_in, char *res_path_out, int res_path_max)
 	}
 }
 
+static void _hide_popup() {
+	if (popup) {
+		evas_object_hide(popup);
+		popup = NULL;
+	}
+}
+
+static void _show_popup(const char* text) {
+	_hide_popup();
+
+	if (!popup) {
+		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
+		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+
+		popup = elm_popup_add(vc->root_container);
+		elm_popup_content_text_wrap_type_set(popup, ELM_WRAP_MIXED);
+		elm_object_text_set(popup, text);
+		elm_popup_orient_set(popup, ELM_POPUP_ORIENT_CENTER);
+		evas_object_show(popup);
+	} else {
+		elm_object_text_set(popup, text);
+	}
+}
+
 static bool upload_failed = false;
 static char* activity_name = NULL;
 static void _upload_files(void* user_data, Ecore_Thread *thread) {
@@ -149,12 +174,10 @@ static void _upload_files(void* user_data, Ecore_Thread *thread) {
 					strcat(file, dir->d_name);
 					bool pace = gps_get_pace();
 					if (!upload_fit(file, token, activity_name, pace)) {
-						uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-						uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+						char buf[80];
+						sprintf(buf, "Upload %s Failed!", dir->d_name);
+						_show_popup(buf);
 
-						elm_object_text_set(vc->bottomLabel,"Failed");
-
-						uib_views_get_instance()->uib_views_current_view_redraw();
 						upload_failed = true;
 						break;
 					} else {
@@ -176,40 +199,44 @@ static void thread_exit(void *user_data, Ecore_Thread *thread) {
 	}
 }
 
+static bool listening = false;
 void _voice_cb(const char* name) {
-	activity_name = strdup(name);
+	if (!listening) return;
 
-	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+	listening = false;
 
-	elm_object_text_set(vc->topLabel, name ? name : "Failed");
-	elm_object_text_set(vc->bottomLabel, "Uploading");
+	activity_name = name ? strdup(name) : NULL;
 
-	uib_views_get_instance()->uib_views_current_view_redraw();
+	char buf[80];
+	sprintf(buf, "Uploading %s...", name ? name : "Data");
+	_show_popup(buf);
 
 	ecore_thread_run(_upload_files, thread_exit, thread_exit, NULL);
 }
 
 static bool exiting = false;
 void clean_exit() {
-	if (!exiting && oauth_access_token()) {
+	if (!exiting) {
 		exiting = true;
 		bool written = stop_fit();
-		if (written) {
-			uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-			uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
+		if (written && oauth_access_token()) {
 
-			elm_object_text_set(vc->topLabel, "Run Name?");
-			elm_object_text_set(vc->bottomLabel, "Listening");
+			char buf[80];
+			sprintf(buf, "Listening for activity name...");
+			_show_popup(buf);
 
-			uib_views_get_instance()->uib_views_current_view_redraw();
-
+			listening = true;
 			voice_listen(_voice_cb);
 		} else {
+			listening = true;
 			_voice_cb(NULL);
 		}
 	} else {
-		thread_exit(NULL, NULL);
+		if (listening) {
+			_voice_cb(NULL);
+		} else {
+			thread_exit(NULL, NULL);
+		}
 	}
 }
 
@@ -241,12 +268,9 @@ static void update_battery() {
 		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-		char batText[4];
-		batText[3] = 0;
-		batText[2] = '%';
-		batText[1] = '0' + (percent % 10);
-		batText[0] = percent < 10 ? ' ' : '0' + (percent / 10);
-		elm_object_text_set(vc->btv, batText);
+		char buf[16];
+		sprintf(buf, "%02d%%", percent);
+		elm_object_text_set(vc->btv, buf);
 
 		uib_views_get_instance()->uib_views_current_view_redraw();
 	}
@@ -463,13 +487,13 @@ void update_settings() {
 	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-	elm_object_text_set(vc->topLabel,"Start");
-	elm_object_text_set(vc->bottomLabel,"Exit");
+	elm_object_text_set(vc->topLabel,"<align=center>Start</align>");
+	elm_object_text_set(vc->bottomLabel,"<align=center>Exit</align>");
 
 	bool metric = gps_get_metric();
 	elm_object_text_set(vc->l1,"GPS");
 	elm_object_text_set(vc->v1, gps_has_signal() ? "Found" : "...");
-	elm_object_text_set(vc->l2,"Units");
+	elm_object_text_set(vc->l2,"Unit");
 	elm_object_text_set(vc->v2, metric ? "kph,km,m" : "mph,mi,ft");
 	elm_object_text_set(vc->l3,"Type");
 	elm_object_text_set(vc->v3, gps_get_pace() ? "Pace" : "Speed");
@@ -482,7 +506,7 @@ void update_settings() {
 				:
 					haptic == 1 ? "0.1 mi" : haptic == 2 ? "0.2 mi" : haptic == 5 ? "0.5 mi" : haptic == 10 ? "1.0 mi" : "");
 
-	elm_object_text_set(vc->l5,"Voice");
+	elm_object_text_set(vc->l5,"Voic");
 
 	int speech = gps_get_speech();
 	elm_object_text_set(vc->v5, speech == 0 ? "No" :
@@ -491,7 +515,7 @@ void update_settings() {
 				:
 					speech == 5 ? "0.5 mi" : speech == 10 ? "1.0 mi" : speech == 20 ? "2.0 mi" : ""
 	);
-	elm_object_text_set(vc->l6,"Strav");
+	elm_object_text_set(vc->l6,"Strv");
 	elm_object_text_set(vc->v6, oauth_access_token() ? "Logout" : "Login");
 
 	uib_views_get_instance()->uib_views_current_view_redraw();

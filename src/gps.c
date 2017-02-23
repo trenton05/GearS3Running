@@ -57,14 +57,6 @@ static location_summary* am_summary = NULL;
 static location_summary* km_summary = NULL;
 static location_summary* hm_summary = NULL;
 
-#define TEXT_SIZE 10
-static char* amText = NULL;
-static char* hmText = NULL;
-static char* kmText = NULL;
-static char* aText = NULL;
-static char* sText = NULL;
-static char* mText = NULL;
-
 static int locCount = 0;
 static location_time* firstLoc = NULL;
 static location_time* lastLoc = NULL;
@@ -147,97 +139,38 @@ static void update_summary(location_summary* summary, location_inc* location, do
 	}
 }
 
-static void get_speed(char* chs, double meters, double seconds) {
-	int index = 9;
-	chs[index--] = 0;
-	chs[index--] = 'h';
-	chs[index--] = 'p';
-	chs[index--] = metric ? 'k' : 'm';
+static char* get_speed(char* chs, double meters, double seconds) {
 	int i = seconds >= 0.1 ? (int)(meters / seconds * (metric ? 3600.0/1000.0 * 100.0 : 3600.0/1600.0 * 100.0) + 0.5) : 0.0;
-	chs[index--] = '0' + (i % 10);
-	chs[index--] = '0' + (i % 10);
-	i /= 10;
-	chs[index--] = '.';
-	chs[index--] = '0' + (i % 10);
-	i /= 10;
-
-	while (i >= 1 && index >= 0) {
-		chs[index--] = '0' + (i % 10);
-		i /= 10;
-	}
-	while (index >= 0) {
-		chs[index--] = ' ';
-	}
+	sprintf(chs, metric ? "<align=right>%d.%02dkpm</align>" : "<align=right>%d.%02dmph</align>", i / 100, i % 100);
+	return chs;
 }
 
-static void get_meters(char* chs, double meters, double seconds, double target) {
+static char* get_meters(char* chs, double meters, double seconds, double target) {
 	if (!metric) {
 		meters *= 3.28084;
 	}
 
-	int index = 9;
-	chs[index--] = 0;
-	chs[index--] = metric ? 'm' : 'f';
 	int i = seconds >= 1.0 && target >= 1.0 ? (int)(meters * target / seconds + 0.5) : (int)(meters + 0.5);
-	chs[index--] = '0' + (i % 10);
-	i /= 10;
-
-	while (i >= 1 && index >= 0) {
-		chs[index--] = '0' + (i % 10);
-		i /= 10;
-	}
-	while (index >= 0) {
-		chs[index--] = ' ';
-	}
+	sprintf(chs, metric ? "<align=right>%dm</align>" : "<align=right>%df</align>", i);
+	return chs;
 }
 
-static void get_kilometers(char* chs, double meters) {
+static char* get_kilometers(char* chs, double meters) {
 
-	int index = 9;
-	chs[index--] = 0;
-	chs[index--] = metric ? 'm' : 'i';
-	chs[index--] = metric ? 'k' : 'm';
 	int i = (int)(meters * (metric ? 100.0/1000.0 : 100.0/1600.0) + 0.5);
-	chs[index--] = '0' + (i % 10);
-	i /= 10;
-	chs[index--] = '0' + (i % 10);
-	i /= 10;
-	chs[index--] = '.';
-	chs[index--] = '0' + (i % 10);
-	i /= 10;
+	sprintf(chs, metric ? "<align=right>%d.%02dkm</align>" : "<align=right>%d.%02dmi</align>", i / 100, i % 100);
+	return chs;
 
-	while (i >= 1 && index >= 0) {
-		chs[index--] = '0' + (i % 10);
-		i /= 10;
-	}
-	while (index >= 0) {
-		chs[index--] = ' ';
-	}
 }
 
-static void get_time(char* chs, double seconds, double meters, double target) {
+static char* get_time(char* chs, double seconds, double meters, double target) {
 	int i = meters >= 1.0 && target >= 1.0 ? (int)(seconds * target / meters + 0.5) : (int)(seconds + 0.5);
 	int s = i % 60;
 	int m = (i / 60) % 60;
 	int h = i / 3600;
-	int index = 9;
-	chs[index--] = 0;
-	chs[index--] = '0' + (s % 10);
-	chs[index--] = '0' + (s / 10);
-	chs[index--] = ':';
-	chs[index--] = '0' + (m % 10);
-	chs[index--] = '0' + (m / 10);
-	chs[index--] = ':';
-	chs[index--] = '0' + (h % 10);
-	h /= 10;
 
-	while (h >= 1 && index >= 0) {
-		chs[index--] = '0' + (h % 10);
-		h /= 10;
-	}
-	while (index >= 0) {
-		chs[index--] = ' ';
-	}
+	sprintf(chs, "<align=right>%d:%02d:%02d</align>", h, m, s);
+	return chs;
 }
 
 static void get_speech_kilometers(char* chs, double meters) {
@@ -303,12 +236,9 @@ static void update_error() {
 	int i = (int) (lastErr * (metric ? 1.0 : 3.28084) + 0.5);
 	if (i > 99) i = 99;
 
-	char err[4];
-	err[3] = 0;
-	err[2] = metric ? 'm' : 'f';
-	err[1] = '0' + (i % 10);
-	err[0] = i < 10 ? ' ' : '0' + (i / 10);
-	elm_object_text_set(vc->erv, err);
+	char buf[16];
+	sprintf(buf, metric ? "%dm" : "%df", i);
+	elm_object_text_set(vc->erv, buf);
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
 
@@ -318,45 +248,38 @@ void gps_update(){
 	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-	elm_object_text_set(vc->l1, metric ? "*km" : "*mi");
+	elm_object_text_set(vc->l1, metric ? "*" : "*");
 	elm_object_text_set(vc->l2, metric ? "km" : "mi");
-	elm_object_text_set(vc->l3, metric ? ".1km" : ".1mi");
+	elm_object_text_set(vc->l3, "hm");
 
 	if (running) {
-		elm_object_text_set(vc->topLabel, "Pause");
+		elm_object_text_set(vc->topLabel, "<align=center>Pause</align>");
 		elm_object_text_set(vc->bottomLabel, "");
 	} else {
-		elm_object_text_set(vc->topLabel, "Resume");
-		elm_object_text_set(vc->bottomLabel, "Exit");
+		elm_object_text_set(vc->topLabel, "<align=center>Resume</align>");
+		elm_object_text_set(vc->bottomLabel, "<align=center>Exit</align>");
 	}
 
+	char buf[64];
 	if (pace) {
-		get_time(amText, am_summary->seconds, am_summary->meters, metric ? 1000.0 : 1600.0);
-		get_time(kmText, km_summary->seconds, km_summary->meters, metric ? 1000.0 : 1600.0);
-		get_time(hmText, hm_summary->seconds, hm_summary->meters, metric ? 1000.0 : 1600.0);
+		elm_object_text_set(vc->v1, get_time(buf, am_summary->seconds, am_summary->meters, metric ? 1000.0 : 1600.0));
+		elm_object_text_set(vc->v2, get_time(buf, km_summary->seconds, km_summary->meters, metric ? 1000.0 : 1600.0));
+		elm_object_text_set(vc->v3, get_time(buf, hm_summary->seconds, hm_summary->meters, metric ? 1000.0 : 1600.0));
 
 	} else {
-		get_speed(amText, am_summary->meters, am_summary->seconds);
-		get_speed(kmText, km_summary->meters, km_summary->seconds);
-		get_speed(hmText, hm_summary->meters, hm_summary->seconds);
+		elm_object_text_set(vc->v1, get_speed(buf, am_summary->meters, am_summary->seconds));
+		elm_object_text_set(vc->v2, get_speed(buf, km_summary->meters, km_summary->seconds));
+		elm_object_text_set(vc->v3, get_speed(buf, hm_summary->meters, hm_summary->seconds));
 
 	}
 
-	get_meters(aText, lastAlt, -1.0, -1.0);
-	get_kilometers(mText, am_summary->meters);
-	get_time(sText, am_summary->seconds, -1.0, -1.0);
+	elm_object_text_set(vc->v6, get_meters(buf, lastAlt, -1.0, -1.0));
+	elm_object_text_set(vc->v4, get_kilometers(buf, am_summary->meters));
+	elm_object_text_set(vc->v5, get_time(buf, am_summary->seconds, -1.0, -1.0));
 
 	elm_object_text_set(vc->l4,"dis");
 	elm_object_text_set(vc->l5,"tim");
 	elm_object_text_set(vc->l6,"ele");
-	elm_object_text_set(vc->v4,mText);
-	elm_object_text_set(vc->v5,sText);
-	elm_object_text_set(vc->v6,aText);
-
-
-	elm_object_text_set(vc->v1,amText);
-	elm_object_text_set(vc->v2,kmText);
-	elm_object_text_set(vc->v3,hmText);
 
 	uib_views_get_instance()->uib_views_current_view_redraw();
 }
@@ -367,13 +290,6 @@ bool gps_init(){
 		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to open haptic");
 		haptic_h = NULL;
 	}
-
-	amText = malloc(TEXT_SIZE);
-	kmText = malloc(TEXT_SIZE);
-	hmText = malloc(TEXT_SIZE);
-	mText = malloc(TEXT_SIZE);
-	sText = malloc(TEXT_SIZE);
-	aText = malloc(TEXT_SIZE);
 
 	am_summary = init_summary();
 	hm_summary = init_summary();
@@ -548,6 +464,10 @@ static double intersect(location_time* l1, location_time* l2, location_time* ll)
 }
 
 void gps_update_speech() {
+	if (!speech_every) {
+		return;
+	}
+
 	char buf[255];
 
 	sprintf(buf, "distance ");
@@ -589,7 +509,7 @@ static void update_increment() {
 		int lastTotal = (int)(am_summary->meters * (metric ? 10.0/1000.0 : 10.0/1600.0));
 
 		update_summary(am_summary, inc, -1, -1);
-		update_summary(hm_summary, inc, metric ? 100 : 160, -1);
+		update_summary(hm_summary, inc, 100, -1);
 		update_summary(km_summary, inc, metric ? 1000 : 1600, -1);
 
 		int newTotal = (int)(am_summary->meters * (metric ? 10.0/1000.0 : 10.0/1600.0));

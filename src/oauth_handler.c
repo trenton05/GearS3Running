@@ -206,6 +206,19 @@ __on_web_url_change(void *data, Evas_Object *obj, void *event_info)
 	const char *uri = event_info;
 
 	if (g_str_has_prefix(uri, OAUTH_REDIRECT_URL) == TRUE) {
+
+		if (oauth_full->loading_popup != NULL) {
+			evas_object_hide(oauth_full->loading_popup);
+			oauth_full->loading_popup = NULL;
+		}
+
+		oauth_full->loading_popup = elm_popup_add(oauth_full->login_win);
+		elm_popup_content_text_wrap_type_set(oauth_full->loading_popup, ELM_WRAP_MIXED);
+		elm_object_text_set(oauth_full->loading_popup, "Retrieving Token...");
+		elm_popup_orient_set(oauth_full->loading_popup, ELM_POPUP_ORIENT_CENTER);
+
+		evas_object_show(oauth_full->loading_popup);
+
 		_on_auth_grant_received(uri);
 	}
 }

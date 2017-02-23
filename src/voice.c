@@ -53,7 +53,6 @@ bool voice_init() {
 	}
 	if (0 != stt_set_silence_detection(stt, STT_OPTION_SILENCE_DETECTION_TRUE)) {
 		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to set stt silence detection");
-		return false;
 	}
 	if (0 != stt_get_default_language(stt, &language)) {
 		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to get default language");

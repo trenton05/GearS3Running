@@ -16,27 +16,9 @@ static int lastHrm = -1;
 static sensor_h sensor;
 static sensor_listener_h sensor_listener;
 
-#define HRM_SIZE 4
-static char* hrmText;
 
 int get_last_hr() {
 	return lastHrm;
-}
-
-void get_hb(char* chs, float val) {
-	int index = 4;
-	chs[index--] = 0;
-	int i = (int)(val + 0.5);
-	chs[index--] = '0' + (i % 10);
-	i /= 10;
-
-	while (i >= 1 && index >= 0) {
-		chs[index--] = '0' + (i % 10);
-		i /= 10;
-	}
-	while (index >= 0) {
-		chs[index--] = ' ';
-	}
 }
 
 void hrm_update(){
@@ -47,8 +29,9 @@ void hrm_update(){
 	if (lastHrm <= 0) {
 		elm_object_text_set(vc->hrv, "?");
 	} else {
-		get_hb(hrmText, lastHrm);
-		elm_object_text_set(vc->hrv, hrmText);
+		char buf[16];
+		sprintf(buf, "%d", lastHrm);
+		elm_object_text_set(vc->hrv, buf);
 	}
 
 
@@ -78,8 +61,6 @@ void __update_sensor_accuracy(sensor_h sensor, unsigned long long timestamp, sen
 }
 
 bool hrm_init(){
-
-	hrmText = malloc(HRM_SIZE);
 
 	if (sensor_get_default_sensor(SENSOR_HRM, &sensor) != SENSOR_ERROR_NONE) {
 		dlog_print(DLOG_ERROR, LOG_TAG, "Failed to get hrm sensor");
