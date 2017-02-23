@@ -27,10 +27,10 @@ void hrm_update(){
 
 
 	if (lastHrm <= 0) {
-		elm_object_text_set(vc->hrv, "?");
+		elm_object_text_set(vc->hrv, "<align=right>?</align>");
 	} else {
-		char buf[16];
-		sprintf(buf, "%d", lastHrm);
+		char buf[64];
+		sprintf(buf, "<align=right>%d</align>", lastHrm);
 		elm_object_text_set(vc->hrv, buf);
 	}
 

@@ -97,31 +97,31 @@
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="136" pack_x="60" pack_y="334" id="hrl"
-					text="hr"></label>
+					wrap_width="0" pack_w="166" pack_x="0" pack_y="334" id="hrl"
+					text="&lt;align=right&gt;hr&lt;/align&gt;"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="186" pack_x="10" pack_y="454" id="hrv"
+					wrap_width="0" pack_w="166" pack_x="0" pack_y="454" id="hrv"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="176" pack_x="20" pack_y="634" id="satv"
+					wrap_width="0" pack_w="186" pack_x="20" pack_y="634" id="satv"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="176" pack_x="810" pack_y="274" id="btl"
+					wrap_width="0" pack_w="190" pack_x="810" pack_y="274" id="btl"
 					text="bat"></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="176" pack_x="810" pack_y="394" id="btv"
+					wrap_width="0" pack_w="190" pack_x="810" pack_y="394" id="btv"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="176" pack_x="810" pack_y="514" id="erv"
+					wrap_width="0" pack_w="190" pack_x="810" pack_y="514" id="erv"
 					text=""></label>
 				<label align_v="fill" visible="true" weight_v="1" line_wrap="none"
 					pack_h="120" weight_h="1" ellipsis="false" align_h="fill"
-					wrap_width="0" pack_w="176" pack_x="810" pack_y="634" id="erl"
+					wrap_width="0" pack_w="190" pack_x="810" pack_y="634" id="erl"
 					text="err"></label>
 			</grid>
 		</view>

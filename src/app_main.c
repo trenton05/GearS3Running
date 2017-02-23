@@ -268,7 +268,7 @@ static void update_battery() {
 		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-		char buf[16];
+		char buf[64];
 		sprintf(buf, "%02d%%", percent);
 		elm_object_text_set(vc->btv, buf);
 
@@ -494,7 +494,7 @@ void update_settings() {
 	elm_object_text_set(vc->l1,"GPS");
 	elm_object_text_set(vc->v1, gps_has_signal() ? "Found" : "...");
 	elm_object_text_set(vc->l2,"Unit");
-	elm_object_text_set(vc->v2, metric ? "kph,km,m" : "mph,mi,ft");
+	elm_object_text_set(vc->v2, metric ? "Metric" : "Imperial");
 	elm_object_text_set(vc->l3,"Type");
 	elm_object_text_set(vc->v3, gps_get_pace() ? "Pace" : "Speed");
 	elm_object_text_set(vc->l4,"Vibr");

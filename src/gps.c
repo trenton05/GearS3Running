@@ -236,7 +236,7 @@ static void update_error() {
 	int i = (int) (lastErr * (metric ? 1.0 : 3.28084) + 0.5);
 	if (i > 99) i = 99;
 
-	char buf[16];
+	char buf[64];
 	sprintf(buf, metric ? "%dm" : "%df", i);
 	elm_object_text_set(vc->erv, buf);
 
