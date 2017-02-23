@@ -351,7 +351,7 @@ void oauth_login()
 		uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
 		uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
 
-		elm_object_text_set(vc->bottomLabel,"Login");
+		elm_object_text_set(vc->v6,"Login");
 
 		uib_views_get_instance()->uib_views_current_view_redraw();
 	} else {
@@ -395,15 +395,4 @@ void oauth_init() {
 		}
 		fclose(fp);
 	}
-
-	uib_app_manager_st* uib_app_manager = uib_app_manager_get_instance();
-	uib_view1_view_context* vc = (uib_view1_view_context*)uib_app_manager->find_view_context("view1");
-
-	if (token) {
-		elm_object_text_set(vc->bottomLabel,"Logout");
-	} else {
-		elm_object_text_set(vc->bottomLabel,"Login");
-	}
-
-	uib_views_get_instance()->uib_views_current_view_redraw();
 }
